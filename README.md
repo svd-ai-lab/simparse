@@ -12,6 +12,13 @@ case metadata.
 | Fluent | `.cas.h5`, `.msh.h5` |
 | HFSS / AEDT | `.aedt`, `.aedtz` |
 
+## Design
+
+`simparse` is meant to compose with existing simulation tools, not replace them.
+It focuses on lightweight agent workflows: metadata, inventory, quick directory
+scans, and deciding when a heavier vendor or Python tool should be called next.
+See [tool design principles](docs/design-principles.md).
+
 ## CLI
 
 ```powershell
