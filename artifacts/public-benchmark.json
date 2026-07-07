@@ -1,0 +1,270 @@
+{
+  "benchmark": "simparse public artifact scan comparison",
+  "generated_at_utc": "2026-07-07T05:59:12+00:00",
+  "artifact_manifest": "benchmarks/public-artifacts.json",
+  "source_policy": "public URLs only; downloaded files are cached under target/ and are not committed",
+  "workload": {
+    "iterations": 5,
+    "primary_scenario": "agent tool call: one external command scans one public artifact group",
+    "simparse_tool_call": "target/release/simparse scan <case-cache-dir> --jsonl --include <patterns>",
+    "python_tool_call": "python benchmarks/compare.py --python-worker <baseline> --python-worker-dir <case-cache-dir>",
+    "python_in_process": "same Python baseline function called inside the benchmark process"
+  },
+  "results": [
+    {
+      "case": "abaqus_inp",
+      "format": "abaqus-inp",
+      "artifacts": [
+        {
+          "filename": "abaqus2dyna-example.inp",
+          "bytes": 2080946,
+          "source_url": "https://github.com/tbhartman/abaqus2dyna/blob/master/example.inp",
+          "source_repo": "tbhartman/abaqus2dyna",
+          "license": "MIT"
+        },
+        {
+          "filename": "magicpbc-irregular-3dmesh.inp",
+          "bytes": 333486,
+          "source_url": "https://github.com/mo-hanxuan/MagicPBC/blob/master/tests/irregular_3Dmesh.inp",
+          "source_repo": "mo-hanxuan/MagicPBC",
+          "license": "MIT"
+        },
+        {
+          "filename": "magicpbc-irregular-3dmesh-deformed.inp",
+          "bytes": 300192,
+          "source_url": "https://github.com/mo-hanxuan/MagicPBC/blob/master/tests/irregular_3Dmesh_deformed.inp",
+          "source_repo": "mo-hanxuan/MagicPBC",
+          "license": "MIT"
+        },
+        {
+          "filename": "abaqus-us-test-indent-umat.inp",
+          "bytes": 29919,
+          "source_url": "https://github.com/jgomezc1/ABAQUS-US/blob/master/INPUT_FILES/TEST_INDENT_UMAT.inp",
+          "source_repo": "jgomezc1/ABAQUS-US",
+          "license": "MIT"
+        },
+        {
+          "filename": "abaqus-reader-cantilever-beam.inp",
+          "bytes": 4404,
+          "source_url": "https://github.com/ahojukka5/AbaqusReader.jl/blob/master/test/test_comprehensive/cantilever_beam.inp",
+          "source_repo": "ahojukka5/AbaqusReader.jl",
+          "license": "MIT"
+        }
+      ],
+      "simparse_cli_ms": {
+        "median_ms": 22.935,
+        "min_ms": 21.511,
+        "max_ms": 53.695
+      },
+      "python_tool_call_ms": {
+        "median_ms": 202.599,
+        "min_ms": 193.029,
+        "max_ms": 252.924
+      },
+      "python_in_process_ms": {
+        "median_ms": 14.508,
+        "min_ms": 13.511,
+        "max_ms": 16.689
+      },
+      "python_baseline_status": "ok",
+      "simparse_vs_python_tool_call_speedup": 8.834,
+      "simparse_vs_python_in_process_speedup": 0.633,
+      "vendor_native_ms": null,
+      "vendor_native_status": "not_run",
+      "vendor_native_note": "requires locally licensed vendor software or APIs"
+    },
+    {
+      "case": "comsol_mph",
+      "format": "comsol-mph",
+      "artifacts": [
+        {
+          "filename": "comsol-capacitance-q2.mph",
+          "bytes": 666448,
+          "source_url": "https://github.com/sepidehkhakzad/ComsolProjects/blob/main/Capacitance%20Measurement/Q2.mph",
+          "source_repo": "sepidehkhakzad/ComsolProjects",
+          "license": "Apache-2.0"
+        },
+        {
+          "filename": "comsol-capacitance-q2-circuit.mph",
+          "bytes": 1786985,
+          "source_url": "https://github.com/sepidehkhakzad/ComsolProjects/blob/main/Capacitance%20Measurement/Q2%20electrical%20circuit%20as%20excitation.mph",
+          "source_repo": "sepidehkhakzad/ComsolProjects",
+          "license": "Apache-2.0"
+        },
+        {
+          "filename": "comsol-capacitive-sensors-q2.mph",
+          "bytes": 1119877,
+          "source_url": "https://github.com/sepidehkhakzad/ComsolProjects/blob/main/Capacitive%20Sensors/Q2.mph",
+          "source_repo": "sepidehkhakzad/ComsolProjects",
+          "license": "Apache-2.0"
+        },
+        {
+          "filename": "comsol-diaphragm-pressure-sensor.mph",
+          "bytes": 1157323,
+          "source_url": "https://github.com/sepidehkhakzad/ComsolProjects/blob/main/Diaphragm/capacitive_pressure_sensor.mph",
+          "source_repo": "sepidehkhakzad/ComsolProjects",
+          "license": "Apache-2.0"
+        },
+        {
+          "filename": "comsol-heat-transfer-solids.mph",
+          "bytes": 1679332,
+          "source_url": "https://github.com/sepidehkhakzad/ComsolProjects/blob/main/Heat%20Transfer%20in%20Solids/HTS.mph",
+          "source_repo": "sepidehkhakzad/ComsolProjects",
+          "license": "Apache-2.0"
+        },
+        {
+          "filename": "comsol-magnetic-sensor-q2.mph",
+          "bytes": 1014416,
+          "source_url": "https://github.com/sepidehkhakzad/ComsolProjects/blob/main/Magnetic%20Sensor/Q2.mph",
+          "source_repo": "sepidehkhakzad/ComsolProjects",
+          "license": "Apache-2.0"
+        }
+      ],
+      "simparse_cli_ms": {
+        "median_ms": 45.159,
+        "min_ms": 43.698,
+        "max_ms": 46.517
+      },
+      "python_tool_call_ms": {
+        "median_ms": 270.71,
+        "min_ms": 247.359,
+        "max_ms": 276.56
+      },
+      "python_in_process_ms": {
+        "median_ms": 56.626,
+        "min_ms": 55.649,
+        "max_ms": 67.592
+      },
+      "python_baseline_status": "ok",
+      "simparse_vs_python_tool_call_speedup": 5.995,
+      "simparse_vs_python_in_process_speedup": 1.254,
+      "vendor_native_ms": null,
+      "vendor_native_status": "not_run",
+      "vendor_native_note": "requires locally licensed vendor software or APIs"
+    },
+    {
+      "case": "fluent_hdf5",
+      "format": "fluent-hdf5",
+      "artifacts": [
+        {
+          "filename": "mixing-elbow.cas.h5",
+          "bytes": 3062081,
+          "source_url": "https://github.com/ansys/example-data/blob/main/pyfluent/mixing_elbow/mixing_elbow.cas.h5",
+          "source_repo": "ansys/example-data",
+          "license": "MIT"
+        },
+        {
+          "filename": "mixing-elbow.msh.h5",
+          "bytes": 2806981,
+          "source_url": "https://github.com/ansys/example-data/blob/main/pyfluent/mixing_elbow/mixing_elbow.msh.h5",
+          "source_repo": "ansys/example-data",
+          "license": "MIT"
+        },
+        {
+          "filename": "elbow.msh.h5",
+          "bytes": 2806596,
+          "source_url": "https://github.com/ansys/example-data/blob/main/pyfluent/mixing_elbow/elbow.msh.h5",
+          "source_repo": "ansys/example-data",
+          "license": "MIT"
+        },
+        {
+          "filename": "elbow-param.cas.h5",
+          "bytes": 1228645,
+          "source_url": "https://github.com/ansys/example-data/blob/main/pyfluent/mixing_elbow/elbow_param.cas.h5",
+          "source_repo": "ansys/example-data",
+          "license": "MIT"
+        }
+      ],
+      "simparse_cli_ms": {
+        "median_ms": 22.286,
+        "min_ms": 21.35,
+        "max_ms": 53.197
+      },
+      "python_tool_call_ms": {
+        "median_ms": 436.73,
+        "min_ms": 425.308,
+        "max_ms": 449.352
+      },
+      "python_in_process_ms": {
+        "median_ms": 27.258,
+        "min_ms": 25.995,
+        "max_ms": 34.109
+      },
+      "python_baseline_status": "ok",
+      "simparse_vs_python_tool_call_speedup": 19.597,
+      "simparse_vs_python_in_process_speedup": 1.223,
+      "vendor_native_ms": null,
+      "vendor_native_status": "not_run",
+      "vendor_native_note": "requires locally licensed vendor software or APIs"
+    },
+    {
+      "case": "hfss_aedt",
+      "format": "hfss-aedt",
+      "artifacts": [
+        {
+          "filename": "trihedral-rcs.aedt",
+          "bytes": 56953,
+          "source_url": "https://github.com/ansys/example-data/blob/main/pyaedt/sbr_convergence/trihedral_rcs.aedt",
+          "source_repo": "ansys/example-data",
+          "license": "MIT"
+        },
+        {
+          "filename": "cable-modeling.aedt",
+          "bytes": 64662,
+          "source_url": "https://github.com/ansys/example-data/blob/main/pyaedt/cable_modeling/cable_modeling.aedt",
+          "source_repo": "ansys/example-data",
+          "license": "MIT"
+        },
+        {
+          "filename": "emi-pcb-house.aedt",
+          "bytes": 285437,
+          "source_url": "https://github.com/ansys/example-data/blob/main/pyaedt/eigenmode/emi_PCB_house.aedt",
+          "source_repo": "ansys/example-data",
+          "license": "MIT"
+        },
+        {
+          "filename": "graphics-card.aedt",
+          "bytes": 196486,
+          "source_url": "https://github.com/ansys/example-data/blob/main/pyaedt/icepak/Graphics_card.aedt",
+          "source_repo": "ansys/example-data",
+          "license": "MIT"
+        },
+        {
+          "filename": "qfp2.aedt",
+          "bytes": 75852,
+          "source_url": "https://github.com/ansys/example-data/blob/main/pyaedt/icepak_3dcomp/QFP2.aedt",
+          "source_repo": "ansys/example-data",
+          "license": "MIT"
+        },
+        {
+          "filename": "maxwell-magnetic-force.aedt",
+          "bytes": 145683,
+          "source_url": "https://github.com/ansys/example-data/blob/main/pyaedt/maxwell_magnetic_force/Maxwell_Magnetic_Force.aedt",
+          "source_repo": "ansys/example-data",
+          "license": "MIT"
+        }
+      ],
+      "simparse_cli_ms": {
+        "median_ms": 48.639,
+        "min_ms": 47.25,
+        "max_ms": 51.256
+      },
+      "python_tool_call_ms": {
+        "median_ms": 176.636,
+        "min_ms": 171.985,
+        "max_ms": 210.975
+      },
+      "python_in_process_ms": {
+        "median_ms": 5.276,
+        "min_ms": 4.623,
+        "max_ms": 5.766
+      },
+      "python_baseline_status": "ok",
+      "simparse_vs_python_tool_call_speedup": 3.632,
+      "simparse_vs_python_in_process_speedup": 0.108,
+      "vendor_native_ms": null,
+      "vendor_native_status": "not_run",
+      "vendor_native_note": "requires locally licensed vendor software or APIs"
+    }
+  ]
+}

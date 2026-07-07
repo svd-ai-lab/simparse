@@ -1,0 +1,184 @@
+{
+  "schema_version": 1,
+  "cases": [
+    {
+      "name": "abaqus_inp",
+      "format": "abaqus-inp",
+      "include": "*.inp,*.inc",
+      "python_baseline": "abaqus_keywords",
+      "artifacts": [
+        {
+          "filename": "abaqus2dyna-example.inp",
+          "url": "https://raw.githubusercontent.com/tbhartman/abaqus2dyna/master/example.inp",
+          "source_url": "https://github.com/tbhartman/abaqus2dyna/blob/master/example.inp",
+          "source_repo": "tbhartman/abaqus2dyna",
+          "license": "MIT"
+        },
+        {
+          "filename": "magicpbc-irregular-3dmesh.inp",
+          "url": "https://raw.githubusercontent.com/mo-hanxuan/MagicPBC/master/tests/irregular_3Dmesh.inp",
+          "source_url": "https://github.com/mo-hanxuan/MagicPBC/blob/master/tests/irregular_3Dmesh.inp",
+          "source_repo": "mo-hanxuan/MagicPBC",
+          "license": "MIT"
+        },
+        {
+          "filename": "magicpbc-irregular-3dmesh-deformed.inp",
+          "url": "https://raw.githubusercontent.com/mo-hanxuan/MagicPBC/master/tests/irregular_3Dmesh_deformed.inp",
+          "source_url": "https://github.com/mo-hanxuan/MagicPBC/blob/master/tests/irregular_3Dmesh_deformed.inp",
+          "source_repo": "mo-hanxuan/MagicPBC",
+          "license": "MIT"
+        },
+        {
+          "filename": "abaqus-us-test-indent-umat.inp",
+          "url": "https://raw.githubusercontent.com/jgomezc1/ABAQUS-US/master/INPUT_FILES/TEST_INDENT_UMAT.inp",
+          "source_url": "https://github.com/jgomezc1/ABAQUS-US/blob/master/INPUT_FILES/TEST_INDENT_UMAT.inp",
+          "source_repo": "jgomezc1/ABAQUS-US",
+          "license": "MIT"
+        },
+        {
+          "filename": "abaqus-reader-cantilever-beam.inp",
+          "url": "https://raw.githubusercontent.com/ahojukka5/AbaqusReader.jl/master/test/test_comprehensive/cantilever_beam.inp",
+          "source_url": "https://github.com/ahojukka5/AbaqusReader.jl/blob/master/test/test_comprehensive/cantilever_beam.inp",
+          "source_repo": "ahojukka5/AbaqusReader.jl",
+          "license": "MIT"
+        }
+      ]
+    },
+    {
+      "name": "comsol_mph",
+      "format": "comsol-mph",
+      "include": "*.mph",
+      "python_baseline": "comsol_zip_xml",
+      "artifacts": [
+        {
+          "filename": "comsol-capacitance-q2.mph",
+          "url": "https://raw.githubusercontent.com/sepidehkhakzad/ComsolProjects/main/Capacitance%20Measurement/Q2.mph",
+          "source_url": "https://github.com/sepidehkhakzad/ComsolProjects/blob/main/Capacitance%20Measurement/Q2.mph",
+          "source_repo": "sepidehkhakzad/ComsolProjects",
+          "license": "Apache-2.0"
+        },
+        {
+          "filename": "comsol-capacitance-q2-circuit.mph",
+          "url": "https://raw.githubusercontent.com/sepidehkhakzad/ComsolProjects/main/Capacitance%20Measurement/Q2%20electrical%20circuit%20as%20excitation.mph",
+          "source_url": "https://github.com/sepidehkhakzad/ComsolProjects/blob/main/Capacitance%20Measurement/Q2%20electrical%20circuit%20as%20excitation.mph",
+          "source_repo": "sepidehkhakzad/ComsolProjects",
+          "license": "Apache-2.0"
+        },
+        {
+          "filename": "comsol-capacitive-sensors-q2.mph",
+          "url": "https://raw.githubusercontent.com/sepidehkhakzad/ComsolProjects/main/Capacitive%20Sensors/Q2.mph",
+          "source_url": "https://github.com/sepidehkhakzad/ComsolProjects/blob/main/Capacitive%20Sensors/Q2.mph",
+          "source_repo": "sepidehkhakzad/ComsolProjects",
+          "license": "Apache-2.0"
+        },
+        {
+          "filename": "comsol-diaphragm-pressure-sensor.mph",
+          "url": "https://raw.githubusercontent.com/sepidehkhakzad/ComsolProjects/main/Diaphragm/capacitive_pressure_sensor.mph",
+          "source_url": "https://github.com/sepidehkhakzad/ComsolProjects/blob/main/Diaphragm/capacitive_pressure_sensor.mph",
+          "source_repo": "sepidehkhakzad/ComsolProjects",
+          "license": "Apache-2.0"
+        },
+        {
+          "filename": "comsol-heat-transfer-solids.mph",
+          "url": "https://raw.githubusercontent.com/sepidehkhakzad/ComsolProjects/main/Heat%20Transfer%20in%20Solids/HTS.mph",
+          "source_url": "https://github.com/sepidehkhakzad/ComsolProjects/blob/main/Heat%20Transfer%20in%20Solids/HTS.mph",
+          "source_repo": "sepidehkhakzad/ComsolProjects",
+          "license": "Apache-2.0"
+        },
+        {
+          "filename": "comsol-magnetic-sensor-q2.mph",
+          "url": "https://raw.githubusercontent.com/sepidehkhakzad/ComsolProjects/main/Magnetic%20Sensor/Q2.mph",
+          "source_url": "https://github.com/sepidehkhakzad/ComsolProjects/blob/main/Magnetic%20Sensor/Q2.mph",
+          "source_repo": "sepidehkhakzad/ComsolProjects",
+          "license": "Apache-2.0"
+        }
+      ]
+    },
+    {
+      "name": "fluent_hdf5",
+      "format": "fluent-hdf5",
+      "include": "*.cas.h5,*.msh.h5",
+      "python_baseline": "fluent_hdf5_h5py",
+      "artifacts": [
+        {
+          "filename": "mixing-elbow.cas.h5",
+          "url": "https://raw.githubusercontent.com/ansys/example-data/main/pyfluent/mixing_elbow/mixing_elbow.cas.h5",
+          "source_url": "https://github.com/ansys/example-data/blob/main/pyfluent/mixing_elbow/mixing_elbow.cas.h5",
+          "source_repo": "ansys/example-data",
+          "license": "MIT"
+        },
+        {
+          "filename": "mixing-elbow.msh.h5",
+          "url": "https://raw.githubusercontent.com/ansys/example-data/main/pyfluent/mixing_elbow/mixing_elbow.msh.h5",
+          "source_url": "https://github.com/ansys/example-data/blob/main/pyfluent/mixing_elbow/mixing_elbow.msh.h5",
+          "source_repo": "ansys/example-data",
+          "license": "MIT"
+        },
+        {
+          "filename": "elbow.msh.h5",
+          "url": "https://raw.githubusercontent.com/ansys/example-data/main/pyfluent/mixing_elbow/elbow.msh.h5",
+          "source_url": "https://github.com/ansys/example-data/blob/main/pyfluent/mixing_elbow/elbow.msh.h5",
+          "source_repo": "ansys/example-data",
+          "license": "MIT"
+        },
+        {
+          "filename": "elbow-param.cas.h5",
+          "url": "https://raw.githubusercontent.com/ansys/example-data/main/pyfluent/mixing_elbow/elbow_param.cas.h5",
+          "source_url": "https://github.com/ansys/example-data/blob/main/pyfluent/mixing_elbow/elbow_param.cas.h5",
+          "source_repo": "ansys/example-data",
+          "license": "MIT"
+        }
+      ]
+    },
+    {
+      "name": "hfss_aedt",
+      "format": "hfss-aedt",
+      "include": "*.aedt,*.aedtz",
+      "python_baseline": "hfss_text_scan",
+      "artifacts": [
+        {
+          "filename": "trihedral-rcs.aedt",
+          "url": "https://raw.githubusercontent.com/ansys/example-data/main/pyaedt/sbr_convergence/trihedral_rcs.aedt",
+          "source_url": "https://github.com/ansys/example-data/blob/main/pyaedt/sbr_convergence/trihedral_rcs.aedt",
+          "source_repo": "ansys/example-data",
+          "license": "MIT"
+        },
+        {
+          "filename": "cable-modeling.aedt",
+          "url": "https://raw.githubusercontent.com/ansys/example-data/main/pyaedt/cable_modeling/cable_modeling.aedt",
+          "source_url": "https://github.com/ansys/example-data/blob/main/pyaedt/cable_modeling/cable_modeling.aedt",
+          "source_repo": "ansys/example-data",
+          "license": "MIT"
+        },
+        {
+          "filename": "emi-pcb-house.aedt",
+          "url": "https://raw.githubusercontent.com/ansys/example-data/main/pyaedt/eigenmode/emi_PCB_house.aedt",
+          "source_url": "https://github.com/ansys/example-data/blob/main/pyaedt/eigenmode/emi_PCB_house.aedt",
+          "source_repo": "ansys/example-data",
+          "license": "MIT"
+        },
+        {
+          "filename": "graphics-card.aedt",
+          "url": "https://raw.githubusercontent.com/ansys/example-data/main/pyaedt/icepak/Graphics_card.aedt",
+          "source_url": "https://github.com/ansys/example-data/blob/main/pyaedt/icepak/Graphics_card.aedt",
+          "source_repo": "ansys/example-data",
+          "license": "MIT"
+        },
+        {
+          "filename": "qfp2.aedt",
+          "url": "https://raw.githubusercontent.com/ansys/example-data/main/pyaedt/icepak_3dcomp/QFP2.aedt",
+          "source_url": "https://github.com/ansys/example-data/blob/main/pyaedt/icepak_3dcomp/QFP2.aedt",
+          "source_repo": "ansys/example-data",
+          "license": "MIT"
+        },
+        {
+          "filename": "maxwell-magnetic-force.aedt",
+          "url": "https://raw.githubusercontent.com/ansys/example-data/main/pyaedt/maxwell_magnetic_force/Maxwell_Magnetic_Force.aedt",
+          "source_url": "https://github.com/ansys/example-data/blob/main/pyaedt/maxwell_magnetic_force/Maxwell_Magnetic_Force.aedt",
+          "source_repo": "ansys/example-data",
+          "license": "MIT"
+        }
+      ]
+    }
+  ]
+}

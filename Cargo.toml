@@ -1,0 +1,32 @@
+[workspace]
+members = [
+  "crates/simparse-core",
+  "crates/simparse-hdf5",
+  "crates/simparse-cli",
+  "crates/simparse-py",
+]
+resolver = "2"
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+license = "Apache-2.0"
+repository = "https://github.com/svd-ai-lab/simparse"
+homepage = "https://github.com/svd-ai-lab/simparse"
+readme = "README.md"
+rust-version = "1.89"
+
+[workspace.dependencies]
+anyhow = "1"
+clap = { version = "4", features = ["derive"] }
+hdf5-pure = "0.21.0"
+pyo3 = { version = "0.27", features = ["extension-module"] }
+quick-xml = "0.38"
+schemars = { version = "1", features = ["derive"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+tempfile = "3"
+thiserror = "2"
+tracing = "0.1"
+walkdir = "2"
+zip = "6"
