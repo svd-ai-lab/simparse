@@ -4,6 +4,7 @@ use crate::{
     AbaqusInpSummary, FormatSummary, HfssAedtSummary, HfssDesign, NamedValue, SimparseResult,
 };
 use simparse_hdf5::{FluentHdf5Summary, Hdf5AttributeInfo, Hdf5DatasetInfo, Hdf5GroupInfo};
+use simparse_hdf5::{MechanicalMechdbSummary, MechanicalObjectTypeCount, MechanicalStreamInfo};
 
 pub const SUMMARY_SAMPLE_LIMIT: usize = 8;
 pub const SUMMARY_TEXT_BYTES: usize = 256;
@@ -52,7 +53,16 @@ pub fn summarize_result(result: &SimparseResult) -> SimparseSummaryResult {
         FormatSummary::HfssAedt(value) => (
             CompactFormatSummary::HfssAedt(compact_hfss(value)),
             vec![
-                "Text-pattern inventory only; the vendor object tree and electromagnetic model semantics are not evaluated."
+                "Shallow AEDT section inventory only; component payloads, solved fields, and electromagnetic model semantics are not evaluated."
+                    .to_string(),
+            ],
+        ),
+        FormatSummary::AnsysMechanical(value) => (
+            CompactFormatSummary::AnsysMechanical(compact_mechanical(value)),
+            vec![
+                "Shallow Mechanical database inventory only; mesh payloads, result arrays, material curves, and solver semantics are not evaluated."
+                    .to_string(),
+                "Object categories use observed Mechanical database type identifiers and may require vendor-tool confirmation across releases."
                     .to_string(),
             ],
         ),
@@ -124,6 +134,7 @@ fn compact_attribute(value: &Hdf5AttributeInfo) -> CompactHdf5Attribute {
 fn compact_hfss(value: &HfssAedtSummary) -> CompactHfssAedtSummary {
     CompactHfssAedtSummary {
         project_name: option_text(value.project_name.as_deref()),
+        product: option_text(value.product.as_deref()),
         version_hint: option_text(value.version_hint.as_deref()),
         designs: bounded_map(&value.designs, compact_hfss_design),
         variables: bounded_texts(&value.variables),
@@ -131,6 +142,8 @@ fn compact_hfss(value: &HfssAedtSummary) -> CompactHfssAedtSummary {
         sweeps: bounded_texts(&value.sweeps),
         ports: bounded_texts(&value.ports),
         boundaries: bounded_texts(&value.boundaries),
+        materials: bounded_texts(&value.materials),
+        mesh_operations: bounded_texts(&value.mesh_operations),
         source_member: option_text(value.source_member.as_deref()),
         lock_file_present: value.sidecars.lock_file_present,
         results_dir_present: value.sidecars.results_dir_present,
@@ -138,10 +151,49 @@ fn compact_hfss(value: &HfssAedtSummary) -> CompactHfssAedtSummary {
     }
 }
 
+fn compact_mechanical(value: &MechanicalMechdbSummary) -> CompactMechanicalMechdbSummary {
+    CompactMechanicalMechdbSummary {
+        mechanical_version: option_text(value.mechanical_version.as_deref()),
+        database_format_version: option_text(value.database_format_version.as_deref()),
+        release_kind: option_text(value.release_kind.as_deref()),
+        object_count: value.object_count,
+        object_type_counts: bounded_map(&value.object_type_counts, compact_mechanical_type_count),
+        analyses: bounded_texts(&value.analyses),
+        bodies: bounded_texts(&value.bodies),
+        materials: bounded_texts(&value.materials),
+        contacts: bounded_texts(&value.contacts),
+        loads_and_conditions: bounded_texts(&value.loads_and_conditions),
+        results: bounded_texts(&value.results),
+        geometry_sources: bounded_texts(&value.geometry_sources),
+        streams: bounded_map(&value.streams, compact_mechanical_stream),
+        lock_file_present: value.sidecars.lock_file_present,
+        project_files_dir_present: value.sidecars.project_files_dir_present,
+        content_truncated: value.content_truncated,
+    }
+}
+
+fn compact_mechanical_type_count(
+    value: &MechanicalObjectTypeCount,
+) -> CompactMechanicalObjectTypeCount {
+    CompactMechanicalObjectTypeCount {
+        type_id: value.type_id,
+        count: value.count,
+    }
+}
+
+fn compact_mechanical_stream(value: &MechanicalStreamInfo) -> CompactMechanicalStreamInfo {
+    CompactMechanicalStreamInfo {
+        name: bounded_text(&value.name),
+        used_bytes: value.used_bytes,
+    }
+}
+
 fn compact_hfss_design(value: &HfssDesign) -> CompactHfssDesign {
     CompactHfssDesign {
         name: bounded_text(&value.name),
         design_type: option_text(value.design_type.as_deref()),
+        solution_type: option_text(value.solution_type.as_deref()),
+        is_solved: value.is_solved,
     }
 }
 
@@ -221,6 +273,7 @@ pub enum CompactFormatSummary {
     AbaqusInp(CompactAbaqusInpSummary),
     FluentHdf5(CompactFluentHdf5Summary),
     HfssAedt(CompactHfssAedtSummary),
+    AnsysMechanical(CompactMechanicalMechdbSummary),
 }
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize, schemars::JsonSchema)]
@@ -308,6 +361,7 @@ pub struct CompactHdf5Dataset {
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize, schemars::JsonSchema)]
 pub struct CompactHfssAedtSummary {
     pub project_name: Option<String>,
+    pub product: Option<String>,
     pub version_hint: Option<String>,
     pub designs: BoundedList<CompactHfssDesign>,
     pub variables: BoundedList<String>,
@@ -315,10 +369,48 @@ pub struct CompactHfssAedtSummary {
     pub sweeps: BoundedList<String>,
     pub ports: BoundedList<String>,
     pub boundaries: BoundedList<String>,
+    pub materials: BoundedList<String>,
+    pub mesh_operations: BoundedList<String>,
     pub source_member: Option<String>,
     pub lock_file_present: bool,
     pub results_dir_present: bool,
     pub source_truncated: bool,
+}
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, schemars::JsonSchema)]
+pub struct CompactMechanicalMechdbSummary {
+    pub mechanical_version: Option<String>,
+    pub database_format_version: Option<String>,
+    pub release_kind: Option<String>,
+    pub object_count: usize,
+    pub object_type_counts: BoundedList<CompactMechanicalObjectTypeCount>,
+    pub analyses: BoundedList<String>,
+    pub bodies: BoundedList<String>,
+    pub materials: BoundedList<String>,
+    pub contacts: BoundedList<String>,
+    pub loads_and_conditions: BoundedList<String>,
+    pub results: BoundedList<String>,
+    pub geometry_sources: BoundedList<String>,
+    pub streams: BoundedList<CompactMechanicalStreamInfo>,
+    pub lock_file_present: bool,
+    pub project_files_dir_present: bool,
+    pub content_truncated: bool,
+}
+
+#[derive(
+    Debug, Clone, serde::Serialize, serde::Deserialize, schemars::JsonSchema, PartialEq, Eq,
+)]
+pub struct CompactMechanicalObjectTypeCount {
+    pub type_id: u32,
+    pub count: usize,
+}
+
+#[derive(
+    Debug, Clone, serde::Serialize, serde::Deserialize, schemars::JsonSchema, PartialEq, Eq,
+)]
+pub struct CompactMechanicalStreamInfo {
+    pub name: String,
+    pub used_bytes: u64,
 }
 
 #[derive(
@@ -327,6 +419,8 @@ pub struct CompactHfssAedtSummary {
 pub struct CompactHfssDesign {
     pub name: String,
     pub design_type: Option<String>,
+    pub solution_type: Option<String>,
+    pub is_solved: Option<bool>,
 }
 
 #[cfg(test)]

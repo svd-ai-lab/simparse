@@ -2,7 +2,7 @@ use std::path::{Path, PathBuf};
 
 use walkdir::WalkDir;
 
-use crate::parsers::{abaqus, comsol, hfss, inspect_fluent_hdf5};
+use crate::parsers::{abaqus, comsol, hfss, inspect_fluent_hdf5, inspect_mechanical_mechdb};
 use crate::{
     FormatSummary, InspectOptions, Result, ScanOptions, SimFormat, SimparseError, SimparseResult,
 };
@@ -17,6 +17,8 @@ pub fn detect_format(path: &Path) -> Option<SimFormat> {
         Some(SimFormat::FluentHdf5)
     } else if name.ends_with(".aedt") || name.ends_with(".aedtz") {
         Some(SimFormat::HfssAedt)
+    } else if name.ends_with(".mechdb") || name.ends_with(".mechdat") {
+        Some(SimFormat::AnsysMechanical)
     } else {
         None
     }
@@ -35,6 +37,9 @@ pub fn inspect_path(path: impl AsRef<Path>, options: InspectOptions) -> Result<S
         SimFormat::FluentHdf5 => FormatSummary::FluentHdf5(inspect_fluent_hdf5(path)?),
         SimFormat::HfssAedt => {
             FormatSummary::HfssAedt(hfss::inspect_hfss_aedt(path, options.max_text_bytes)?)
+        }
+        SimFormat::AnsysMechanical => {
+            FormatSummary::AnsysMechanical(inspect_mechanical_mechdb(path, options.max_text_bytes)?)
         }
     };
 
