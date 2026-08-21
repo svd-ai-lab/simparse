@@ -2,18 +2,30 @@ use std::path::PathBuf;
 
 use pyo3::exceptions::PyRuntimeError;
 use pyo3::prelude::*;
-use simparse_core::{InspectOptions, ScanOptions, SimFormat, inspect_path, scan_paths};
+use simparse_core::{
+    InspectOptions, ScanOptions, SimFormat, inspect_path, scan_paths, summarize_result,
+};
 
 #[pyfunction]
-#[pyo3(signature = (path, format = "auto", include_paths = false))]
-fn inspect(py: Python<'_>, path: &str, format: &str, include_paths: bool) -> PyResult<Py<PyAny>> {
+#[pyo3(signature = (path, format = "auto", include_paths = false, summary = false))]
+fn inspect(
+    py: Python<'_>,
+    path: &str,
+    format: &str,
+    include_paths: bool,
+    summary: bool,
+) -> PyResult<Py<PyAny>> {
     let options = InspectOptions {
         format: parse_format(format)?,
         include_paths,
         max_text_bytes: InspectOptions::default().max_text_bytes,
     };
     let result = inspect_path(path, options).map_err(to_py_err)?;
-    json_to_py(py, &result)
+    if summary {
+        json_to_py(py, &summarize_result(&result))
+    } else {
+        json_to_py(py, &result)
+    }
 }
 
 #[pyfunction]

@@ -2,11 +2,14 @@ use std::path::PathBuf;
 
 use anyhow::{Context, bail};
 use clap::{Parser, Subcommand};
-use simparse_core::{InspectOptions, ScanOptions, SimFormat, inspect_path, scan_paths};
+use simparse_core::{
+    InspectOptions, ScanOptions, SimFormat, inspect_path, scan_paths, summarize_result,
+};
 
 #[derive(Debug, Parser)]
 #[command(name = "simparse")]
 #[command(about = "Inspect simulation project and case files.")]
+#[command(version)]
 struct Cli {
     #[command(subcommand)]
     command: Command,
@@ -20,6 +23,8 @@ enum Command {
         format: String,
         #[arg(long)]
         json: bool,
+        #[arg(long, requires = "json")]
+        summary: bool,
         #[arg(long)]
         include_paths: bool,
         #[arg(long, default_value_t = 2 * 1024 * 1024)]
@@ -50,6 +55,7 @@ fn main() -> anyhow::Result<()> {
             path,
             format,
             json,
+            summary,
             include_paths,
             max_text_bytes,
         } => {
@@ -60,7 +66,12 @@ fn main() -> anyhow::Result<()> {
             };
             let result = inspect_path(&path, options)
                 .with_context(|| format!("failed to inspect {}", path.display()))?;
-            if json {
+            if summary {
+                println!(
+                    "{}",
+                    serde_json::to_string_pretty(&summarize_result(&result))?
+                );
+            } else if json {
                 println!("{}", serde_json::to_string_pretty(&result)?);
             } else {
                 println!("{}: {}", result.file_name, result.format);

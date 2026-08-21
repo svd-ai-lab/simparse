@@ -2,7 +2,12 @@ from typing import Any, Literal
 
 Format = Literal["auto", "comsol-mph", "abaqus-inp", "fluent-hdf5", "hfss-aedt"]
 
-def inspect(path: str, format: Format = "auto", include_paths: bool = False) -> dict[str, Any]: ...
+def inspect(
+    path: str,
+    format: Format = "auto",
+    include_paths: bool = False,
+    summary: bool = False,
+) -> dict[str, Any]: ...
 
 def scan(
     paths: list[str],

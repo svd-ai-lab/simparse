@@ -23,14 +23,19 @@ See [tool design principles](docs/design-principles.md).
 
 ```powershell
 cargo run -p simparse-cli -- inspect /path/to/model.mph --json
+cargo run -p simparse-cli -- inspect /path/to/model.mph --json --summary
 cargo run -p simparse-cli -- scan /path/to/history --jsonl
 ```
+
+Use `--summary` for a deterministic, bounded preflight view. It reports total
+counts with capped samples and explicit parser limitations. Omit it when the
+full shallow inventory is needed.
 
 ## Python
 
 ```powershell
 maturin develop
-python -c "import simparse; print(simparse.inspect('/path/to/model.inp'))"
+python -c "import simparse; print(simparse.inspect('/path/to/model.inp', summary=True))"
 ```
 
 ## Benchmark
