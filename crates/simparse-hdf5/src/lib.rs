@@ -242,9 +242,8 @@ fn dataset_used_bytes(dataset: &Hdf5DatasetInfo) -> u64 {
 }
 
 fn decode_utf16le(bytes: &[u8]) -> String {
-    let units = bytes
-        .chunks_exact(2)
-        .map(|pair| u16::from_le_bytes([pair[0], pair[1]]));
+    let (pairs, _) = bytes.as_chunks::<2>();
+    let units = pairs.iter().copied().map(u16::from_le_bytes);
     char::decode_utf16(units)
         .map(|value| value.unwrap_or(char::REPLACEMENT_CHARACTER))
         .collect()
