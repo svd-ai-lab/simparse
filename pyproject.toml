@@ -4,7 +4,7 @@ build-backend = "maturin"
 
 [project]
 name = "simparse"
-version = "0.1.0"
+version = "0.2.0"
 description = "Lightweight metadata scanner for simulation project and case files."
 readme = "README.md"
 requires-python = ">=3.9"
