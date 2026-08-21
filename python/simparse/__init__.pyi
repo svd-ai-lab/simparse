@@ -1,6 +1,13 @@
 from typing import Any, Literal
 
-Format = Literal["auto", "comsol-mph", "abaqus-inp", "fluent-hdf5", "hfss-aedt"]
+Format = Literal[
+    "auto",
+    "comsol-mph",
+    "abaqus-inp",
+    "fluent-hdf5",
+    "hfss-aedt",
+    "ansys-mechanical",
+]
 
 def inspect(
     path: str,

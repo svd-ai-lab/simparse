@@ -11,6 +11,7 @@ pub enum SimFormat {
     AbaqusInp,
     FluentHdf5,
     HfssAedt,
+    AnsysMechanical,
 }
 
 impl FromStr for SimFormat {
@@ -23,6 +24,7 @@ impl FromStr for SimFormat {
             "abaqus-inp" | "inp" | "inc" => Ok(Self::AbaqusInp),
             "fluent-hdf5" | "fluent-h5" | "cas.h5" | "msh.h5" => Ok(Self::FluentHdf5),
             "hfss-aedt" | "aedt" | "aedtz" => Ok(Self::HfssAedt),
+            "ansys-mechanical" | "mechanical" | "mechdb" | "mechdat" => Ok(Self::AnsysMechanical),
             other => Err(format!("unknown format: {other}")),
         }
     }
@@ -35,6 +37,7 @@ impl std::fmt::Display for SimFormat {
             Self::AbaqusInp => "abaqus-inp",
             Self::FluentHdf5 => "fluent-hdf5",
             Self::HfssAedt => "hfss-aedt",
+            Self::AnsysMechanical => "ansys-mechanical",
         };
         f.write_str(text)
     }
@@ -78,6 +81,8 @@ impl Default for ScanOptions {
                 "*.msh.h5".into(),
                 "*.aedt".into(),
                 "*.aedtz".into(),
+                "*.mechdb".into(),
+                "*.mechdat".into(),
             ],
             inspect: InspectOptions::default(),
         }
@@ -102,6 +107,7 @@ pub enum FormatSummary {
     AbaqusInp(AbaqusInpSummary),
     FluentHdf5(simparse_hdf5::FluentHdf5Summary),
     HfssAedt(HfssAedtSummary),
+    AnsysMechanical(simparse_hdf5::MechanicalMechdbSummary),
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
@@ -153,6 +159,7 @@ pub struct AbaqusInpSummary {
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
 pub struct HfssAedtSummary {
     pub project_name: Option<String>,
+    pub product: Option<String>,
     pub version_hint: Option<String>,
     pub designs: Vec<HfssDesign>,
     pub variables: Vec<String>,
@@ -160,6 +167,8 @@ pub struct HfssAedtSummary {
     pub sweeps: Vec<String>,
     pub ports: Vec<String>,
     pub boundaries: Vec<String>,
+    pub materials: Vec<String>,
+    pub mesh_operations: Vec<String>,
     pub source_member: Option<String>,
     pub sidecars: HfssSidecars,
     pub truncated: bool,
@@ -169,6 +178,8 @@ pub struct HfssAedtSummary {
 pub struct HfssDesign {
     pub name: String,
     pub design_type: Option<String>,
+    pub solution_type: Option<String>,
+    pub is_solved: Option<bool>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]

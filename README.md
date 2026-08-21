@@ -11,6 +11,7 @@ case metadata.
 | Abaqus | `.inp`, `.inc` |
 | Fluent | `.cas.h5`, `.msh.h5` |
 | HFSS / AEDT | `.aedt`, `.aedtz` |
+| Ansys Mechanical | `.mechdb`, `.mechdat` |
 
 ## Design
 
