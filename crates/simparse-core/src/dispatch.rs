@@ -2,7 +2,9 @@ use std::path::{Path, PathBuf};
 
 use walkdir::WalkDir;
 
-use crate::parsers::{abaqus, comsol, hfss, inspect_fluent_hdf5, inspect_mechanical_mechdb};
+use crate::parsers::{
+    abaqus, comsol, flotherm, hfss, icepak, inspect_fluent_hdf5, inspect_mechanical_mechdb,
+};
 use crate::{
     FormatSummary, InspectOptions, Result, ScanOptions, SimFormat, SimparseError, SimparseResult,
 };
@@ -19,6 +21,12 @@ pub fn detect_format(path: &Path) -> Option<SimFormat> {
         Some(SimFormat::HfssAedt)
     } else if name.ends_with(".mechdb") || name.ends_with(".mechdat") {
         Some(SimFormat::AnsysMechanical)
+    } else if name.ends_with(".tzr") {
+        Some(SimFormat::IcepakTzr)
+    } else if name.ends_with(".floxml")
+        || (name.ends_with(".xml") && flotherm::has_flotherm_root(path))
+    {
+        Some(SimFormat::FlothermFloxml)
     } else {
         None
     }
@@ -41,6 +49,12 @@ pub fn inspect_path(path: impl AsRef<Path>, options: InspectOptions) -> Result<S
         SimFormat::AnsysMechanical => {
             FormatSummary::AnsysMechanical(inspect_mechanical_mechdb(path, options.max_text_bytes)?)
         }
+        SimFormat::IcepakTzr => {
+            FormatSummary::IcepakTzr(icepak::inspect_icepak_tzr(path, options.max_text_bytes)?)
+        }
+        SimFormat::FlothermFloxml => FormatSummary::FlothermFloxml(
+            flotherm::inspect_flotherm_floxml(path, options.max_text_bytes)?,
+        ),
     };
 
     Ok(SimparseResult {
@@ -63,7 +77,10 @@ pub fn scan_paths(paths: &[PathBuf], options: ScanOptions) -> Result<Vec<Simpars
             if should_include(root, &options.includes) {
                 let mut inspect = options.inspect.clone();
                 inspect.include_paths = options.include_paths;
-                out.push(inspect_path(root, inspect)?);
+                inspect.format = inspect.format.or_else(|| detect_format(root));
+                if inspect.format.is_some() {
+                    out.push(inspect_path(root, inspect)?);
+                }
             }
             continue;
         }
@@ -79,7 +96,10 @@ pub fn scan_paths(paths: &[PathBuf], options: ScanOptions) -> Result<Vec<Simpars
             if path.is_file() && should_include(path, &options.includes) {
                 let mut inspect = options.inspect.clone();
                 inspect.include_paths = options.include_paths;
-                out.push(inspect_path(path, inspect)?);
+                inspect.format = inspect.format.or_else(|| detect_format(path));
+                if inspect.format.is_some() {
+                    out.push(inspect_path(path, inspect)?);
+                }
             }
         }
     }

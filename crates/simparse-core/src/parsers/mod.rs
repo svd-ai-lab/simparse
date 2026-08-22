@@ -1,6 +1,8 @@
 pub mod abaqus;
 pub mod comsol;
+pub mod flotherm;
 pub mod hfss;
+pub mod icepak;
 
 use std::path::Path;
 

@@ -1,7 +1,9 @@
 use std::path::Path;
 
 use crate::{
-    AbaqusInpSummary, FormatSummary, HfssAedtSummary, HfssDesign, NamedValue, SimparseResult,
+    AbaqusInpSummary, FlothermBoundary, FlothermEntity, FlothermFloxmlSummary, FlothermGridAxis,
+    FlothermSource, FormatSummary, HfssAedtSummary, HfssDesign, IcepakAedtSummary, IcepakBoundary,
+    IcepakDesign, IcepakTzrEntry, IcepakTzrSummary, NamedCount, NamedValue, SimparseResult,
 };
 use simparse_hdf5::{FluentHdf5Summary, Hdf5AttributeInfo, Hdf5DatasetInfo, Hdf5GroupInfo};
 use simparse_hdf5::{MechanicalMechdbSummary, MechanicalObjectTypeCount, MechanicalStreamInfo};
@@ -53,7 +55,7 @@ pub fn summarize_result(result: &SimparseResult) -> SimparseSummaryResult {
         FormatSummary::HfssAedt(value) => (
             CompactFormatSummary::HfssAedt(compact_hfss(value)),
             vec![
-                "Shallow AEDT section inventory only; component payloads, solved fields, and electromagnetic model semantics are not evaluated."
+                "Shallow AEDT section inventory only; component payloads, solved fields, and electromagnetic or thermal-fluid model semantics are not evaluated."
                     .to_string(),
             ],
         ),
@@ -64,6 +66,21 @@ pub fn summarize_result(result: &SimparseResult) -> SimparseSummaryResult {
                     .to_string(),
                 "Object categories use observed Mechanical database type identifiers and may require vendor-tool confirmation across releases."
                     .to_string(),
+            ],
+        ),
+        FormatSummary::IcepakTzr(value) => (
+            CompactFormatSummary::IcepakTzr(compact_icepak_tzr(value)),
+            vec![
+                "Archive inventory only; Icepak Classic model payloads, mesh, results, and solver semantics are not decoded."
+                    .to_string(),
+            ],
+        ),
+        FormatSummary::FlothermFloxml(value) => (
+            CompactFormatSummary::FlothermFloxml(compact_flotherm(value)),
+            vec![
+                "Shallow FloXML structure only; references, geometry validity, mesh generation, result fields, and solver semantics are not evaluated."
+                    .to_string(),
+                "Proprietary FloTHERM PDML project payloads are not decoded.".to_string(),
             ],
         ),
     };
@@ -144,10 +161,134 @@ fn compact_hfss(value: &HfssAedtSummary) -> CompactHfssAedtSummary {
         boundaries: bounded_texts(&value.boundaries),
         materials: bounded_texts(&value.materials),
         mesh_operations: bounded_texts(&value.mesh_operations),
+        icepak: value.icepak.as_ref().map(compact_icepak_aedt),
         source_member: option_text(value.source_member.as_deref()),
         lock_file_present: value.sidecars.lock_file_present,
         results_dir_present: value.sidecars.results_dir_present,
         source_truncated: value.truncated,
+    }
+}
+
+fn compact_icepak_aedt(value: &IcepakAedtSummary) -> CompactIcepakAedtSummary {
+    CompactIcepakAedtSummary {
+        designs: bounded_map(&value.designs, compact_icepak_design),
+        thermal_boundaries: bounded_map(&value.thermal_boundaries, compact_icepak_boundary),
+        monitors: bounded_texts(&value.monitors),
+        mesh_regions: bounded_texts(&value.mesh_regions),
+    }
+}
+
+fn compact_icepak_design(value: &IcepakDesign) -> CompactIcepakDesign {
+    CompactIcepakDesign {
+        name: bounded_text(&value.name),
+        solution_type: option_text(value.solution_type.as_deref()),
+        problem_option: option_text(value.problem_option.as_deref()),
+        ambient_temperature: option_text(value.ambient_temperature.as_deref()),
+        ambient_pressure: option_text(value.ambient_pressure.as_deref()),
+        ambient_radiation_temperature: option_text(value.ambient_radiation_temperature.as_deref()),
+        default_fluid_material: option_text(value.default_fluid_material.as_deref()),
+        default_solid_material: option_text(value.default_solid_material.as_deref()),
+        default_surface_material: option_text(value.default_surface_material.as_deref()),
+    }
+}
+
+fn compact_icepak_boundary(value: &IcepakBoundary) -> CompactIcepakBoundary {
+    CompactIcepakBoundary {
+        name: bounded_text(&value.name),
+        boundary_type: bounded_text(&value.boundary_type),
+        thermal_condition: option_text(value.thermal_condition.as_deref()),
+        total_power: option_text(value.total_power.as_deref()),
+        temperature: option_text(value.temperature.as_deref()),
+    }
+}
+
+fn compact_icepak_tzr(value: &IcepakTzrSummary) -> CompactIcepakTzrSummary {
+    CompactIcepakTzrSummary {
+        project_name: option_text(value.project_name.as_deref()),
+        gzip_compressed: value.gzip_compressed,
+        entry_count: value.entry_count,
+        file_count: value.file_count,
+        directory_count: value.directory_count,
+        uncompressed_bytes: value.uncompressed_bytes,
+        job_file_present: value.job_file_present,
+        model_file_present: value.model_file_present,
+        entries: bounded_map(&value.entries, compact_icepak_tzr_entry),
+        source_truncated: value.truncated,
+    }
+}
+
+fn compact_icepak_tzr_entry(value: &IcepakTzrEntry) -> CompactIcepakTzrEntry {
+    CompactIcepakTzrEntry {
+        name: bounded_text(&value.name),
+        entry_type: bounded_text(&value.entry_type),
+        bytes: value.bytes,
+    }
+}
+
+fn compact_flotherm(value: &FlothermFloxmlSummary) -> CompactFlothermFloxmlSummary {
+    CompactFlothermFloxmlSummary {
+        root: bounded_text(&value.root),
+        name: option_text(value.name.as_deref()),
+        solution: option_text(value.solution.as_deref()),
+        dimensionality: option_text(value.dimensionality.as_deref()),
+        transient: value.transient,
+        radiation: option_text(value.radiation.as_deref()),
+        turbulence_type: option_text(value.turbulence_type.as_deref()),
+        gravity_direction: option_text(value.gravity_direction.as_deref()),
+        ambient_temperature: option_text(value.ambient_temperature.as_deref()),
+        datum_pressure: option_text(value.datum_pressure.as_deref()),
+        outer_iterations: option_text(value.outer_iterations.as_deref()),
+        grid: bounded_map(&value.grid, compact_flotherm_grid),
+        attribute_type_counts: bounded_map(&value.attribute_type_counts, compact_named_count),
+        attributes: bounded_map(&value.attributes, compact_flotherm_entity),
+        geometry_type_counts: bounded_map(&value.geometry_type_counts, compact_named_count),
+        geometry: bounded_map(&value.geometry, compact_flotherm_entity),
+        sources: bounded_map(&value.sources, compact_flotherm_source),
+        solution_domain: value.solution_domain.as_ref().map(|domain| {
+            CompactFlothermSolutionDomain {
+                fluid: option_text(domain.fluid.as_deref()),
+                boundaries: bounded_map(&domain.boundaries, compact_flotherm_boundary),
+            }
+        }),
+        source_truncated: value.truncated,
+    }
+}
+
+fn compact_named_count(value: &NamedCount) -> CompactNamedCount {
+    CompactNamedCount {
+        name: bounded_text(&value.name),
+        count: value.count,
+    }
+}
+
+fn compact_flotherm_entity(value: &FlothermEntity) -> CompactFlothermEntity {
+    CompactFlothermEntity {
+        kind: bounded_text(&value.kind),
+        name: bounded_text(&value.name),
+    }
+}
+
+fn compact_flotherm_source(value: &FlothermSource) -> CompactFlothermSource {
+    CompactFlothermSource {
+        name: bounded_text(&value.name),
+        powers: bounded_texts(&value.powers),
+    }
+}
+
+fn compact_flotherm_grid(value: &FlothermGridAxis) -> CompactFlothermGridAxis {
+    CompactFlothermGridAxis {
+        axis: bounded_text(&value.axis),
+        grid_type: option_text(value.grid_type.as_deref()),
+        min_size: option_text(value.min_size.as_deref()),
+        max_size: option_text(value.max_size.as_deref()),
+    }
+}
+
+fn compact_flotherm_boundary(value: &FlothermBoundary) -> CompactFlothermBoundary {
+    CompactFlothermBoundary {
+        face: bounded_text(&value.face),
+        kind: bounded_text(&value.kind),
+        value: bounded_text(&value.value),
     }
 }
 
@@ -274,6 +415,8 @@ pub enum CompactFormatSummary {
     FluentHdf5(CompactFluentHdf5Summary),
     HfssAedt(CompactHfssAedtSummary),
     AnsysMechanical(CompactMechanicalMechdbSummary),
+    IcepakTzr(CompactIcepakTzrSummary),
+    FlothermFloxml(CompactFlothermFloxmlSummary),
 }
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize, schemars::JsonSchema)]
@@ -371,10 +514,124 @@ pub struct CompactHfssAedtSummary {
     pub boundaries: BoundedList<String>,
     pub materials: BoundedList<String>,
     pub mesh_operations: BoundedList<String>,
+    pub icepak: Option<CompactIcepakAedtSummary>,
     pub source_member: Option<String>,
     pub lock_file_present: bool,
     pub results_dir_present: bool,
     pub source_truncated: bool,
+}
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, schemars::JsonSchema)]
+pub struct CompactIcepakAedtSummary {
+    pub designs: BoundedList<CompactIcepakDesign>,
+    pub thermal_boundaries: BoundedList<CompactIcepakBoundary>,
+    pub monitors: BoundedList<String>,
+    pub mesh_regions: BoundedList<String>,
+}
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, schemars::JsonSchema)]
+pub struct CompactIcepakDesign {
+    pub name: String,
+    pub solution_type: Option<String>,
+    pub problem_option: Option<String>,
+    pub ambient_temperature: Option<String>,
+    pub ambient_pressure: Option<String>,
+    pub ambient_radiation_temperature: Option<String>,
+    pub default_fluid_material: Option<String>,
+    pub default_solid_material: Option<String>,
+    pub default_surface_material: Option<String>,
+}
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, schemars::JsonSchema)]
+pub struct CompactIcepakBoundary {
+    pub name: String,
+    pub boundary_type: String,
+    pub thermal_condition: Option<String>,
+    pub total_power: Option<String>,
+    pub temperature: Option<String>,
+}
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, schemars::JsonSchema)]
+pub struct CompactIcepakTzrSummary {
+    pub project_name: Option<String>,
+    pub gzip_compressed: bool,
+    pub entry_count: usize,
+    pub file_count: usize,
+    pub directory_count: usize,
+    pub uncompressed_bytes: u64,
+    pub job_file_present: bool,
+    pub model_file_present: bool,
+    pub entries: BoundedList<CompactIcepakTzrEntry>,
+    pub source_truncated: bool,
+}
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, schemars::JsonSchema)]
+pub struct CompactIcepakTzrEntry {
+    pub name: String,
+    pub entry_type: String,
+    pub bytes: u64,
+}
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, schemars::JsonSchema)]
+pub struct CompactFlothermFloxmlSummary {
+    pub root: String,
+    pub name: Option<String>,
+    pub solution: Option<String>,
+    pub dimensionality: Option<String>,
+    pub transient: Option<bool>,
+    pub radiation: Option<String>,
+    pub turbulence_type: Option<String>,
+    pub gravity_direction: Option<String>,
+    pub ambient_temperature: Option<String>,
+    pub datum_pressure: Option<String>,
+    pub outer_iterations: Option<String>,
+    pub grid: BoundedList<CompactFlothermGridAxis>,
+    pub attribute_type_counts: BoundedList<CompactNamedCount>,
+    pub attributes: BoundedList<CompactFlothermEntity>,
+    pub geometry_type_counts: BoundedList<CompactNamedCount>,
+    pub geometry: BoundedList<CompactFlothermEntity>,
+    pub sources: BoundedList<CompactFlothermSource>,
+    pub solution_domain: Option<CompactFlothermSolutionDomain>,
+    pub source_truncated: bool,
+}
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, schemars::JsonSchema)]
+pub struct CompactNamedCount {
+    pub name: String,
+    pub count: usize,
+}
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, schemars::JsonSchema)]
+pub struct CompactFlothermEntity {
+    pub kind: String,
+    pub name: String,
+}
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, schemars::JsonSchema)]
+pub struct CompactFlothermSource {
+    pub name: String,
+    pub powers: BoundedList<String>,
+}
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, schemars::JsonSchema)]
+pub struct CompactFlothermGridAxis {
+    pub axis: String,
+    pub grid_type: Option<String>,
+    pub min_size: Option<String>,
+    pub max_size: Option<String>,
+}
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, schemars::JsonSchema)]
+pub struct CompactFlothermSolutionDomain {
+    pub fluid: Option<String>,
+    pub boundaries: BoundedList<CompactFlothermBoundary>,
+}
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, schemars::JsonSchema)]
+pub struct CompactFlothermBoundary {
+    pub face: String,
+    pub kind: String,
+    pub value: String,
 }
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize, schemars::JsonSchema)]

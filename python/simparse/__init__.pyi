@@ -7,6 +7,8 @@ Format = Literal[
     "fluent-hdf5",
     "hfss-aedt",
     "ansys-mechanical",
+    "icepak-tzr",
+    "flotherm-floxml",
 ]
 
 def inspect(

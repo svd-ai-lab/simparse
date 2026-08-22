@@ -36,7 +36,7 @@ enum Command {
         jsonl: bool,
         #[arg(
             long,
-            default_value = "*.mph,*.inp,*.inc,*.cas.h5,*.msh.h5,*.aedt,*.aedtz,*.mechdb,*.mechdat"
+            default_value = "*.mph,*.inp,*.inc,*.cas.h5,*.msh.h5,*.aedt,*.aedtz,*.mechdb,*.mechdat,*.tzr,*.floxml,*.xml"
         )]
         include: String,
         #[arg(long)]
