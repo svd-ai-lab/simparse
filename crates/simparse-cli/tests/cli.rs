@@ -73,3 +73,36 @@ fn inspect_cli_summary_is_bounded_and_describes_limits() {
     );
     assert!(output.stdout.len() < 16 * 1024);
 }
+
+#[test]
+fn inspect_cli_summarizes_flotherm_xml_by_content() {
+    let tmp = tempdir().unwrap();
+    let model = tmp.path().join("thermal.xml");
+    std::fs::write(
+        &model,
+        "<xml_case><name>PackageThermal</name><model><modeling><solution>flow_heat</solution></modeling></model></xml_case>",
+    )
+    .unwrap();
+
+    let output = Command::new(env!("CARGO_BIN_EXE_simparse"))
+        .arg("inspect")
+        .arg(&model)
+        .arg("--json")
+        .arg("--summary")
+        .output()
+        .unwrap();
+
+    assert!(output.status.success());
+    let value: serde_json::Value = serde_json::from_slice(&output.stdout).unwrap();
+    assert_eq!(value["format"], "flotherm-floxml");
+    assert_eq!(value["summary"]["kind"], "flotherm-floxml");
+    assert_eq!(value["summary"]["data"]["name"], "PackageThermal");
+    assert_eq!(value["summary"]["data"]["solution"], "flow_heat");
+    assert!(
+        value["limitations"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|item| item.as_str().unwrap().contains("FloXML structure"))
+    );
+}

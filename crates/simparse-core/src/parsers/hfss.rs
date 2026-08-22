@@ -3,7 +3,10 @@ use std::path::Path;
 
 use zip::ZipArchive;
 
-use crate::{HfssAedtSummary, HfssDesign, HfssSidecars, Result, SimparseError};
+use crate::{
+    HfssAedtSummary, HfssDesign, HfssSidecars, IcepakAedtSummary, IcepakBoundary, IcepakDesign,
+    Result, SimparseError,
+};
 
 pub fn inspect_hfss_aedt(path: &Path, max_text_bytes: usize) -> Result<HfssAedtSummary> {
     let (text, source_member, truncated) = if path
@@ -86,6 +89,17 @@ fn is_relevant_aedt_line(line: &str) -> bool {
             "Factory",
             "IsSolved",
             "BoundType",
+            "SolutionTypeOption",
+            "ProblemOption",
+            "AmbientTemperature",
+            "AmbientPressure",
+            "AmbientRadiationTemperature",
+            "'Default Fluid Material'",
+            "'Default Solid Material'",
+            "'Default Surface Material'",
+            "'Thermal Condition'",
+            "'Total Power'",
+            "Temperature",
         ]
         .iter()
         .any(|key| {
@@ -111,6 +125,10 @@ fn parse_aedt_text(
     let mut boundaries = Vec::new();
     let mut materials = Vec::new();
     let mut mesh_operations = Vec::new();
+    let mut icepak_designs = Vec::new();
+    let mut icepak_boundaries = Vec::new();
+    let mut icepak_monitors = Vec::new();
+    let mut icepak_mesh_regions = Vec::new();
     let mut stack = Vec::new();
     let mut inside_project = false;
     let mut pending_models = Vec::new();
@@ -136,6 +154,13 @@ fn parse_aedt_text(
                     section: section.clone(),
                     name: None,
                     solution_type: None,
+                    problem_option: None,
+                    ambient_temperature: None,
+                    ambient_pressure: None,
+                    ambient_radiation_temperature: None,
+                    default_fluid_material: None,
+                    default_solid_material: None,
+                    default_surface_material: None,
                 });
             }
             if section == "DesignInfo" {
@@ -164,7 +189,16 @@ fn parse_aedt_text(
                     depth,
                     name: section.clone(),
                     boundary_type: None,
+                    thermal_condition: None,
+                    total_power: None,
+                    temperature: None,
                 });
+            }
+            if parent == Some("IcepakMonitors") && !is_admin_section(&section) {
+                icepak_monitors.push(section.clone());
+            }
+            if parent == Some("MeshRegions") && !is_mesh_region_admin_section(&section) {
+                icepak_mesh_regions.push(section.clone());
             }
             if parent == Some("MeshOperations") && !is_admin_section(&section) {
                 mesh_operations.push(section.clone());
@@ -191,6 +225,21 @@ fn parse_aedt_text(
                 .rposition(|pending| pending.depth == depth && pending.section == section)
             {
                 let pending = pending_models.remove(index);
+                if pending.section == "IcepakModel"
+                    && let Some(name) = pending.name.clone()
+                {
+                    icepak_designs.push(IcepakDesign {
+                        name,
+                        solution_type: pending.solution_type.clone(),
+                        problem_option: pending.problem_option,
+                        ambient_temperature: pending.ambient_temperature,
+                        ambient_pressure: pending.ambient_pressure,
+                        ambient_radiation_temperature: pending.ambient_radiation_temperature,
+                        default_fluid_material: pending.default_fluid_material,
+                        default_solid_material: pending.default_solid_material,
+                        default_surface_material: pending.default_surface_material,
+                    });
+                }
                 if let Some(name) = pending.name {
                     merge_design(
                         &mut designs,
@@ -227,6 +276,18 @@ fn parse_aedt_text(
             {
                 let pending = pending_boundaries.remove(index);
                 if let Some(boundary_type) = pending.boundary_type {
+                    if pending_models
+                        .iter()
+                        .any(|model| model.section == "IcepakModel")
+                    {
+                        icepak_boundaries.push(IcepakBoundary {
+                            name: pending.name.clone(),
+                            boundary_type: boundary_type.clone(),
+                            thermal_condition: pending.thermal_condition,
+                            total_power: pending.total_power,
+                            temperature: pending.temperature,
+                        });
+                    }
                     if boundary_type.to_ascii_lowercase().contains("port")
                         || boundary_type.to_ascii_lowercase().contains("terminal")
                     {
@@ -251,17 +312,51 @@ fn parse_aedt_text(
         if stack.last().map(String::as_str) == Some("Desktop") && version_hint.is_none() {
             version_hint = extract_version_call(trimmed);
         }
-        if let Some(model) = pending_models.last_mut()
-            && model.depth == stack.len()
-        {
-            model.name = model
-                .name
-                .take()
-                .or_else(|| extract_assignment(trimmed, "Name"));
-            model.solution_type = model
-                .solution_type
-                .take()
-                .or_else(|| extract_assignment(trimmed, "SolutionType"));
+        if let Some(model) = pending_models.last_mut() {
+            if model.depth == stack.len() {
+                model.name = model
+                    .name
+                    .take()
+                    .or_else(|| extract_assignment(trimmed, "Name"));
+                model.solution_type = model
+                    .solution_type
+                    .take()
+                    .or_else(|| extract_assignment(trimmed, "SolutionType"));
+            }
+            if model.section == "IcepakModel" && model.depth <= stack.len() {
+                model.solution_type = model
+                    .solution_type
+                    .take()
+                    .or_else(|| extract_assignment(trimmed, "SolutionTypeOption"));
+                model.problem_option = model
+                    .problem_option
+                    .take()
+                    .or_else(|| extract_assignment(trimmed, "ProblemOption"));
+                model.ambient_temperature = model
+                    .ambient_temperature
+                    .take()
+                    .or_else(|| extract_assignment(trimmed, "AmbientTemperature"));
+                model.ambient_pressure = model
+                    .ambient_pressure
+                    .take()
+                    .or_else(|| extract_assignment(trimmed, "AmbientPressure"));
+                model.ambient_radiation_temperature = model
+                    .ambient_radiation_temperature
+                    .take()
+                    .or_else(|| extract_assignment(trimmed, "AmbientRadiationTemperature"));
+                model.default_fluid_material = model
+                    .default_fluid_material
+                    .take()
+                    .or_else(|| extract_assignment(trimmed, "Default Fluid Material"));
+                model.default_solid_material = model
+                    .default_solid_material
+                    .take()
+                    .or_else(|| extract_assignment(trimmed, "Default Solid Material"));
+                model.default_surface_material = model
+                    .default_surface_material
+                    .take()
+                    .or_else(|| extract_assignment(trimmed, "Default Surface Material"));
+            }
         }
         if let Some(info) = pending_design_info.last_mut()
             && info.depth == stack.len()
@@ -285,6 +380,18 @@ fn parse_aedt_text(
                 .boundary_type
                 .take()
                 .or_else(|| extract_assignment(trimmed, "BoundType"));
+            boundary.thermal_condition = boundary
+                .thermal_condition
+                .take()
+                .or_else(|| extract_assignment(trimmed, "Thermal Condition"));
+            boundary.total_power = boundary
+                .total_power
+                .take()
+                .or_else(|| extract_assignment(trimmed, "Total Power"));
+            boundary.temperature = boundary
+                .temperature
+                .take()
+                .or_else(|| extract_assignment(trimmed, "Temperature"));
         }
         if let Some(name) = extract_first_quoted_call(trimmed, "VariableProp")
             .or_else(|| extract_first_quoted_call(trimmed, "PostProcessingVariableProp"))
@@ -301,6 +408,20 @@ fn parse_aedt_text(
     sort_dedup(&mut boundaries);
     sort_dedup(&mut materials);
     sort_dedup(&mut mesh_operations);
+    icepak_designs.sort_by(|a, b| a.name.cmp(&b.name));
+    icepak_designs.dedup_by(|a, b| a.name == b.name);
+    icepak_boundaries.sort_by(|a, b| a.name.cmp(&b.name));
+    icepak_boundaries.dedup_by(|a, b| a.name == b.name);
+    sort_dedup(&mut icepak_monitors);
+    sort_dedup(&mut icepak_mesh_regions);
+
+    let has_icepak = !icepak_designs.is_empty()
+        || designs.iter().any(|design| {
+            design
+                .design_type
+                .as_deref()
+                .is_some_and(|kind| kind.eq_ignore_ascii_case("Icepak"))
+        });
 
     HfssAedtSummary {
         project_name,
@@ -314,6 +435,12 @@ fn parse_aedt_text(
         boundaries,
         materials,
         mesh_operations,
+        icepak: has_icepak.then_some(IcepakAedtSummary {
+            designs: icepak_designs,
+            thermal_boundaries: icepak_boundaries,
+            monitors: icepak_monitors,
+            mesh_regions: icepak_mesh_regions,
+        }),
         source_member,
         sidecars,
         truncated,
@@ -326,6 +453,13 @@ struct PendingModel {
     section: String,
     name: Option<String>,
     solution_type: Option<String>,
+    problem_option: Option<String>,
+    ambient_temperature: Option<String>,
+    ambient_pressure: Option<String>,
+    ambient_radiation_temperature: Option<String>,
+    default_fluid_material: Option<String>,
+    default_solid_material: Option<String>,
+    default_surface_material: Option<String>,
 }
 
 #[derive(Debug)]
@@ -341,6 +475,9 @@ struct PendingBoundary {
     depth: usize,
     name: String,
     boundary_type: Option<String>,
+    thermal_condition: Option<String>,
+    total_power: Option<String>,
+    temperature: Option<String>,
 }
 
 fn sidecars(path: &Path) -> HfssSidecars {
@@ -425,6 +562,14 @@ fn is_boundary_admin_section(section: &str) -> bool {
                 | "ExcitationsIDMap"
                 | "ExcitationsData"
                 | "ExcitationsInstData"
+        )
+}
+
+fn is_mesh_region_admin_section(section: &str) -> bool {
+    is_admin_section(section)
+        || matches!(
+            section,
+            "MeshRegionsDesc" | "MeshRegionsIDMap" | "MeshRegionsData" | "MeshRegionsInstData"
         )
 }
 

@@ -10,8 +10,10 @@ case metadata.
 | COMSOL | `.mph` |
 | Abaqus | `.inp`, `.inc` |
 | Fluent | `.cas.h5`, `.msh.h5` |
-| HFSS / AEDT | `.aedt`, `.aedtz` |
+| Ansys Electronics Desktop (HFSS / Icepak) | `.aedt`, `.aedtz` |
 | Ansys Mechanical | `.mechdb`, `.mechdat` |
+| Icepak Classic | `.tzr` |
+| Simcenter FloTHERM | `.pack`, `.xml`, `.floxml` |
 
 ## Design
 
@@ -24,6 +26,7 @@ See [tool design principles](docs/design-principles.md).
 
 ```powershell
 cargo run -p simparse-cli -- inspect /path/to/model.mph --json
+cargo run -p simparse-cli -- inspect /path/to/thermal-model.xml --json --summary
 cargo run -p simparse-cli -- inspect /path/to/model.mph --json --summary
 cargo run -p simparse-cli -- scan /path/to/history --jsonl
 ```
@@ -31,6 +34,10 @@ cargo run -p simparse-cli -- scan /path/to/history --jsonl
 Use `--summary` for a deterministic, bounded preflight view. It reports total
 counts with capped samples and explicit parser limitations. Omit it when the
 full shallow inventory is needed.
+
+FloXML files commonly use the generic `.xml` suffix. `simparse` checks their
+root element, so directory scans include `<xml_case>` and `<sm_xml_case>` files
+while skipping unrelated XML.
 
 ## Python
 
