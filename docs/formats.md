@@ -53,4 +53,11 @@ mesh, or result payloads.
 hints, named attribute and geometry inventories, heat-source powers, and
 solution-domain boundaries. Generic `.xml` files are detected by content and
 unrelated XML is skipped during directory scans. FloSCRIPT action logs and
-proprietary PDML project payloads are outside this parser's scope.
+decoding proprietary PDML project payloads are outside this parser's scope.
+
+## Simcenter FloTHERM project archive `.pack`
+
+`simparse` reads the ZIP directory without extracting or decoding project
+payloads. It reports the project directory/name, compressed and uncompressed
+sizes, entry counts, whether `PDProject/group` is present, whether a
+`DataSets/BaseSolution` tree is present, and a bounded entry inventory.

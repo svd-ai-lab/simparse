@@ -2,8 +2,9 @@ use std::path::Path;
 
 use crate::{
     AbaqusInpSummary, FlothermBoundary, FlothermEntity, FlothermFloxmlSummary, FlothermGridAxis,
-    FlothermSource, FormatSummary, HfssAedtSummary, HfssDesign, IcepakAedtSummary, IcepakBoundary,
-    IcepakDesign, IcepakTzrEntry, IcepakTzrSummary, NamedCount, NamedValue, SimparseResult,
+    FlothermPackEntry, FlothermPackSummary, FlothermSource, FormatSummary, HfssAedtSummary,
+    HfssDesign, IcepakAedtSummary, IcepakBoundary, IcepakDesign, IcepakTzrEntry, IcepakTzrSummary,
+    NamedCount, NamedValue, SimparseResult,
 };
 use simparse_hdf5::{FluentHdf5Summary, Hdf5AttributeInfo, Hdf5DatasetInfo, Hdf5GroupInfo};
 use simparse_hdf5::{MechanicalMechdbSummary, MechanicalObjectTypeCount, MechanicalStreamInfo};
@@ -81,6 +82,13 @@ pub fn summarize_result(result: &SimparseResult) -> SimparseSummaryResult {
                 "Shallow FloXML structure only; references, geometry validity, mesh generation, result fields, and solver semantics are not evaluated."
                     .to_string(),
                 "Proprietary FloTHERM PDML project payloads are not decoded.".to_string(),
+            ],
+        ),
+        FormatSummary::FlothermPack(value) => (
+            CompactFormatSummary::FlothermPack(compact_flotherm_pack(value)),
+            vec![
+                "Archive inventory only; proprietary PDML payloads, mesh and result fields, and solver semantics are not decoded."
+                    .to_string(),
             ],
         ),
     };
@@ -292,6 +300,31 @@ fn compact_flotherm_boundary(value: &FlothermBoundary) -> CompactFlothermBoundar
     }
 }
 
+fn compact_flotherm_pack(value: &FlothermPackSummary) -> CompactFlothermPackSummary {
+    CompactFlothermPackSummary {
+        project_name: option_text(value.project_name.as_deref()),
+        project_directory: option_text(value.project_directory.as_deref()),
+        entry_count: value.entry_count,
+        file_count: value.file_count,
+        directory_count: value.directory_count,
+        compressed_bytes: value.compressed_bytes,
+        uncompressed_bytes: value.uncompressed_bytes,
+        project_data_present: value.project_data_present,
+        base_solution_present: value.base_solution_present,
+        entries: bounded_map(&value.entries, compact_flotherm_pack_entry),
+        source_truncated: value.truncated,
+    }
+}
+
+fn compact_flotherm_pack_entry(value: &FlothermPackEntry) -> CompactFlothermPackEntry {
+    CompactFlothermPackEntry {
+        name: bounded_text(&value.name),
+        directory: value.directory,
+        compressed_bytes: value.compressed_bytes,
+        uncompressed_bytes: value.uncompressed_bytes,
+    }
+}
+
 fn compact_mechanical(value: &MechanicalMechdbSummary) -> CompactMechanicalMechdbSummary {
     CompactMechanicalMechdbSummary {
         mechanical_version: option_text(value.mechanical_version.as_deref()),
@@ -417,6 +450,7 @@ pub enum CompactFormatSummary {
     AnsysMechanical(CompactMechanicalMechdbSummary),
     IcepakTzr(CompactIcepakTzrSummary),
     FlothermFloxml(CompactFlothermFloxmlSummary),
+    FlothermPack(CompactFlothermPackSummary),
 }
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize, schemars::JsonSchema)]
@@ -632,6 +666,29 @@ pub struct CompactFlothermBoundary {
     pub face: String,
     pub kind: String,
     pub value: String,
+}
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, schemars::JsonSchema)]
+pub struct CompactFlothermPackSummary {
+    pub project_name: Option<String>,
+    pub project_directory: Option<String>,
+    pub entry_count: usize,
+    pub file_count: usize,
+    pub directory_count: usize,
+    pub compressed_bytes: u64,
+    pub uncompressed_bytes: u64,
+    pub project_data_present: bool,
+    pub base_solution_present: bool,
+    pub entries: BoundedList<CompactFlothermPackEntry>,
+    pub source_truncated: bool,
+}
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, schemars::JsonSchema)]
+pub struct CompactFlothermPackEntry {
+    pub name: String,
+    pub directory: bool,
+    pub compressed_bytes: u64,
+    pub uncompressed_bytes: u64,
 }
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize, schemars::JsonSchema)]

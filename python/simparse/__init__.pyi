@@ -9,6 +9,7 @@ Format = Literal[
     "ansys-mechanical",
     "icepak-tzr",
     "flotherm-floxml",
+    "flotherm-pack",
 ]
 
 def inspect(

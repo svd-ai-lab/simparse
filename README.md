@@ -13,7 +13,7 @@ case metadata.
 | Ansys Electronics Desktop (HFSS / Icepak) | `.aedt`, `.aedtz` |
 | Ansys Mechanical | `.mechdb`, `.mechdat` |
 | Icepak Classic | `.tzr` |
-| Simcenter FloTHERM FloXML | `.xml`, `.floxml` |
+| Simcenter FloTHERM | `.pack`, `.xml`, `.floxml` |
 
 ## Design
 

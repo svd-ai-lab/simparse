@@ -430,6 +430,50 @@ fn inspects_flotherm_floxml_project_and_smartpart_roots() {
 }
 
 #[test]
+fn inspects_flotherm_pack_inventory_without_extracting() {
+    let tmp = tempdir().unwrap();
+    let path = tmp.path().join("mobile-demo.pack");
+    let file = std::fs::File::create(&path).unwrap();
+    let mut archive = zip::ZipWriter::new(file);
+    let options = SimpleFileOptions::default();
+    archive
+        .add_directory(
+            "Mobile_Demo.AE152DF44810B5C3E9EF/DataSets/BaseSolution/",
+            options,
+        )
+        .unwrap();
+    archive
+        .start_file("Mobile_Demo.AE152DF44810B5C3E9EF/PDProject/group", options)
+        .unwrap();
+    archive.write_all(b"opaque PDML project data").unwrap();
+    archive
+        .start_file(
+            "Mobile_Demo.AE152DF44810B5C3E9EF/DataSets/BaseSolution/solution.cat",
+            options,
+        )
+        .unwrap();
+    archive.write_all(b"solution catalogue").unwrap();
+    archive.finish().unwrap();
+
+    assert_eq!(detect_format(&path), Some(SimFormat::FlothermPack));
+    let result = inspect_path(&path, InspectOptions::default()).unwrap();
+    let FormatSummary::FlothermPack(summary) = result.summary else {
+        panic!("expected FloTHERM pack summary");
+    };
+    assert_eq!(summary.project_name.as_deref(), Some("Mobile_Demo"));
+    assert_eq!(
+        summary.project_directory.as_deref(),
+        Some("Mobile_Demo.AE152DF44810B5C3E9EF")
+    );
+    assert_eq!(summary.entry_count, 3);
+    assert_eq!(summary.file_count, 2);
+    assert_eq!(summary.directory_count, 1);
+    assert!(summary.project_data_present);
+    assert!(summary.base_solution_present);
+    assert_eq!(summary.entries.len(), 3);
+}
+
+#[test]
 fn scan_detects_floxml_by_content_and_skips_unrelated_xml() {
     let tmp = tempdir().unwrap();
     std::fs::write(

@@ -27,6 +27,8 @@ pub fn detect_format(path: &Path) -> Option<SimFormat> {
         || (name.ends_with(".xml") && flotherm::has_flotherm_root(path))
     {
         Some(SimFormat::FlothermFloxml)
+    } else if name.ends_with(".pack") {
+        Some(SimFormat::FlothermPack)
     } else {
         None
     }
@@ -55,6 +57,10 @@ pub fn inspect_path(path: impl AsRef<Path>, options: InspectOptions) -> Result<S
         SimFormat::FlothermFloxml => FormatSummary::FlothermFloxml(
             flotherm::inspect_flotherm_floxml(path, options.max_text_bytes)?,
         ),
+        SimFormat::FlothermPack => FormatSummary::FlothermPack(flotherm::inspect_flotherm_pack(
+            path,
+            options.max_text_bytes,
+        )?),
     };
 
     Ok(SimparseResult {

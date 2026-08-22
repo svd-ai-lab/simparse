@@ -14,6 +14,7 @@ pub enum SimFormat {
     AnsysMechanical,
     IcepakTzr,
     FlothermFloxml,
+    FlothermPack,
 }
 
 impl FromStr for SimFormat {
@@ -29,6 +30,7 @@ impl FromStr for SimFormat {
             "ansys-mechanical" | "mechanical" | "mechdb" | "mechdat" => Ok(Self::AnsysMechanical),
             "icepak-tzr" | "icepak" | "tzr" => Ok(Self::IcepakTzr),
             "flotherm-floxml" | "flotherm" | "floxml" => Ok(Self::FlothermFloxml),
+            "flotherm-pack" | "pack" => Ok(Self::FlothermPack),
             other => Err(format!("unknown format: {other}")),
         }
     }
@@ -44,6 +46,7 @@ impl std::fmt::Display for SimFormat {
             Self::AnsysMechanical => "ansys-mechanical",
             Self::IcepakTzr => "icepak-tzr",
             Self::FlothermFloxml => "flotherm-floxml",
+            Self::FlothermPack => "flotherm-pack",
         };
         f.write_str(text)
     }
@@ -92,6 +95,7 @@ impl Default for ScanOptions {
                 "*.tzr".into(),
                 "*.floxml".into(),
                 "*.xml".into(),
+                "*.pack".into(),
             ],
             inspect: InspectOptions::default(),
         }
@@ -119,6 +123,7 @@ pub enum FormatSummary {
     AnsysMechanical(simparse_hdf5::MechanicalMechdbSummary),
     IcepakTzr(IcepakTzrSummary),
     FlothermFloxml(FlothermFloxmlSummary),
+    FlothermPack(FlothermPackSummary),
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
@@ -312,4 +317,27 @@ pub struct FlothermBoundary {
     pub face: String,
     pub kind: String,
     pub value: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
+pub struct FlothermPackSummary {
+    pub project_name: Option<String>,
+    pub project_directory: Option<String>,
+    pub entry_count: usize,
+    pub file_count: usize,
+    pub directory_count: usize,
+    pub compressed_bytes: u64,
+    pub uncompressed_bytes: u64,
+    pub project_data_present: bool,
+    pub base_solution_present: bool,
+    pub entries: Vec<FlothermPackEntry>,
+    pub truncated: bool,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
+pub struct FlothermPackEntry {
+    pub name: String,
+    pub directory: bool,
+    pub compressed_bytes: u64,
+    pub uncompressed_bytes: u64,
 }

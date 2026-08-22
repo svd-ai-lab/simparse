@@ -1,4 +1,4 @@
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 use std::io::BufReader;
 use std::path::Path;
 
@@ -6,9 +6,90 @@ use quick_xml::Reader;
 use quick_xml::events::Event;
 
 use crate::{
-    FlothermBoundary, FlothermEntity, FlothermFloxmlSummary, FlothermGridAxis,
-    FlothermSolutionDomain, FlothermSource, NamedCount, Result, SimparseError,
+    FlothermBoundary, FlothermEntity, FlothermFloxmlSummary, FlothermGridAxis, FlothermPackEntry,
+    FlothermPackSummary, FlothermSolutionDomain, FlothermSource, NamedCount, Result, SimparseError,
 };
+
+pub fn inspect_flotherm_pack(path: &Path, max_text_bytes: usize) -> Result<FlothermPackSummary> {
+    let file = std::fs::File::open(path)?;
+    let mut archive = zip::ZipArchive::new(file)?;
+    let mut top_level_directories = BTreeSet::new();
+    let mut project_directory_from_data = None;
+    let mut entries = Vec::new();
+    let mut file_count = 0;
+    let mut directory_count = 0;
+    let mut compressed_bytes = 0_u64;
+    let mut uncompressed_bytes = 0_u64;
+    let mut project_data_present = false;
+    let mut base_solution_present = false;
+    let mut captured_text_bytes = 0_usize;
+    let mut truncated = false;
+
+    for index in 0..archive.len() {
+        let entry = archive.by_index(index)?;
+        let name = entry.name().replace('\\', "/");
+        let directory = entry.is_dir();
+        if directory {
+            directory_count += 1;
+        } else {
+            file_count += 1;
+        }
+        compressed_bytes = compressed_bytes.saturating_add(entry.compressed_size());
+        uncompressed_bytes = uncompressed_bytes.saturating_add(entry.size());
+
+        if let Some(root) = name.split('/').next().filter(|root| !root.is_empty()) {
+            top_level_directories.insert(root.to_string());
+        }
+        let lower = name.to_ascii_lowercase();
+        if lower.ends_with("/pdproject/group") {
+            project_data_present = true;
+            project_directory_from_data = name.split('/').next().map(ToOwned::to_owned);
+        }
+        base_solution_present |= lower.contains("/datasets/basesolution/");
+
+        if captured_text_bytes.saturating_add(name.len()) <= max_text_bytes {
+            captured_text_bytes += name.len();
+            entries.push(FlothermPackEntry {
+                name,
+                directory,
+                compressed_bytes: entry.compressed_size(),
+                uncompressed_bytes: entry.size(),
+            });
+        } else {
+            truncated = true;
+        }
+    }
+
+    if archive.is_empty() {
+        return Err(SimparseError::Parse(
+            "FloTHERM pack archive did not contain any ZIP entries".into(),
+        ));
+    }
+
+    let project_directory = project_directory_from_data.or_else(|| {
+        (top_level_directories.len() == 1)
+            .then(|| top_level_directories.into_iter().next())
+            .flatten()
+    });
+    let project_name = project_directory
+        .as_deref()
+        .and_then(|value| value.split('.').next())
+        .map(ToOwned::to_owned);
+
+    Ok(FlothermPackSummary {
+        project_name,
+        project_directory,
+        entry_count: archive.len(),
+        file_count,
+        directory_count,
+        compressed_bytes,
+        uncompressed_bytes,
+        project_data_present,
+        base_solution_present,
+        entries,
+        truncated,
+    })
+}
 
 pub fn inspect_flotherm_floxml(
     path: &Path,
