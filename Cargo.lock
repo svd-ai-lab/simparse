@@ -826,7 +826,7 @@ checksum = "703d5c7ef118737c72f1af64ad2f6f8c5e1921f818cdcb97b8fe6fc69bf66214"
 
 [[package]]
 name = "simparse-cli"
-version = "0.3.1"
+version = "0.3.2"
 dependencies = [
  "anyhow",
  "clap",
@@ -837,7 +837,7 @@ dependencies = [
 
 [[package]]
 name = "simparse-core"
-version = "0.3.1"
+version = "0.3.2"
 dependencies = [
  "flate2",
  "quick-xml",
@@ -854,7 +854,7 @@ dependencies = [
 
 [[package]]
 name = "simparse-hdf5"
-version = "0.3.1"
+version = "0.3.2"
 dependencies = [
  "flate2",
  "hdf5-pure",
@@ -867,7 +867,7 @@ dependencies = [
 
 [[package]]
 name = "simparse-py"
-version = "0.3.1"
+version = "0.3.2"
 dependencies = [
  "pyo3",
  "serde",

@@ -8,7 +8,7 @@ members = [
 resolver = "2"
 
 [workspace.package]
-version = "0.3.1"
+version = "0.3.2"
 edition = "2024"
 license = "Apache-2.0"
 repository = "https://github.com/svd-ai-lab/simparse"
@@ -21,7 +21,7 @@ anyhow = "1"
 clap = { version = "4", features = ["derive"] }
 flate2 = "1"
 hdf5-pure = "0.21.0"
-pyo3 = { version = "0.27", features = ["extension-module"] }
+pyo3 = { version = "0.27", features = ["extension-module", "abi3-py39"] }
 quick-xml = "0.38"
 schemars = { version = "1", features = ["derive"] }
 serde = { version = "1", features = ["derive"] }
