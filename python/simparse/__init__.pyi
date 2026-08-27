@@ -23,4 +23,5 @@ def scan(
     paths: list[str],
     recursive: bool = True,
     include_paths: bool = False,
+    summary: bool = False,
 ) -> list[dict[str, Any]]: ...

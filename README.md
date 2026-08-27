@@ -44,6 +44,7 @@ while skipping unrelated XML.
 ```powershell
 maturin develop
 python -c "import simparse; print(simparse.inspect('/path/to/model.inp', summary=True))"
+python -c "import simparse; print(simparse.scan(['/path/to/history'], summary=True))"
 ```
 
 ## Benchmark

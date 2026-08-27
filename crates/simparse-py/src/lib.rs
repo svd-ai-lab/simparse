@@ -29,12 +29,13 @@ fn inspect(
 }
 
 #[pyfunction]
-#[pyo3(signature = (paths, recursive = true, include_paths = false))]
+#[pyo3(signature = (paths, recursive = true, include_paths = false, summary = false))]
 fn scan(
     py: Python<'_>,
     paths: Vec<String>,
     recursive: bool,
     include_paths: bool,
+    summary: bool,
 ) -> PyResult<Py<PyAny>> {
     let options = ScanOptions {
         recursive,
@@ -47,7 +48,12 @@ fn scan(
     };
     let paths: Vec<_> = paths.into_iter().map(PathBuf::from).collect();
     let result = scan_paths(&paths, options).map_err(to_py_err)?;
-    json_to_py(py, &result)
+    if summary {
+        let compact: Vec<_> = result.iter().map(summarize_result).collect();
+        json_to_py(py, &compact)
+    } else {
+        json_to_py(py, &result)
+    }
 }
 
 #[pymodule]
