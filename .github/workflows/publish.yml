@@ -1,0 +1,121 @@
+name: Build and publish Python distributions
+run-name: "${{ inputs.mode }} ${{ github.sha }}"
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        type: choice
+        options: [build, publish-reviewed]
+        default: build
+      build_run_id:
+        type: string
+        description: Successful build run containing the reviewed distributions
+      manifest_sha256:
+        type: string
+        description: SHA256 of the reviewed release-manifest.json
+
+permissions:
+  contents: read
+
+jobs:
+  wheels:
+    if: inputs.mode == 'build'
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+          - os: macos-14
+            target: aarch64-apple-darwin
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: PyO3/maturin-action@v1
+        with:
+          target: ${{ matrix.target }}
+          manylinux: '2014'
+          args: --release --locked --out dist --manifest-path crates/simparse-py/Cargo.toml
+      - name: Install the built wheel
+        shell: bash
+        run: |
+          python -m venv smoke-env
+          if [[ "$RUNNER_OS" == "Windows" ]]; then PY=smoke-env/Scripts/python; else PY=smoke-env/bin/python; fi
+          "$PY" -m pip install dist/*.whl
+          "$PY" -c "import simparse; import importlib.metadata; print(importlib.metadata.version('simparse'))"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: wheels-${{ matrix.target }}
+          path: dist/*
+  sdist:
+    if: inputs.mode == 'build'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: PyO3/maturin-action@v1
+        with:
+          command: sdist
+          args: --out dist --manifest-path crates/simparse-py/Cargo.toml
+      - uses: actions/upload-artifact@v4
+        with:
+          name: wheels-sdist
+          path: dist/*
+  manifest:
+    needs: [wheels, sdist]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: wheels-*
+          merge-multiple: true
+          path: dist
+      - run: python scripts/release_artifacts.py create
+      - uses: actions/upload-artifact@v4
+        with:
+          name: reviewed-distributions
+          path: |
+            dist/*
+            release-manifest.json
+  publish:
+    if: inputs.mode == 'publish-reviewed'
+    runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      contents: read
+      actions: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Validate build identity
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BUILD_RUN_ID: ${{ inputs.build_run_id }}
+        run: |
+          gh api "repos/$GITHUB_REPOSITORY/actions/runs/$BUILD_RUN_ID" > build-run.json
+          python -c "import json,os; r=json.load(open('build-run.json')); assert r['head_sha']==os.environ['GITHUB_SHA'] and r['conclusion']=='success' and r['path']=='.github/workflows/publish.yml'"
+      - uses: actions/download-artifact@v4
+        with:
+          name: reviewed-distributions
+          run-id: ${{ inputs.build_run_id }}
+          github-token: ${{ github.token }}
+      - name: Verify reviewed bytes
+        env:
+          MANIFEST_SHA256: ${{ inputs.manifest_sha256 }}
+        run: python scripts/release_artifacts.py verify --expected-sha256 "$MANIFEST_SHA256"
+      - uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          password: ${{ secrets.UV_PUBLISH_TOKEN }}
