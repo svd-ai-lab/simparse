@@ -202,11 +202,11 @@ fn parse_model_tree(text: &str) -> Result<TreeInfo> {
                     });
                 }
                 if let Some(tag) = attrs.get("tag") {
-                    if element_low.contains("physics") {
+                    if element_low == "physics" {
                         out.physics_tags.push(tag.clone());
-                    } else if element_low.contains("study") {
+                    } else if element_low == "study" {
                         out.study_tags.push(tag.clone());
-                    } else if element_low.contains("material") {
+                    } else if element_low == "material" {
                         out.material_tags.push(tag.clone());
                     }
                 }
@@ -243,11 +243,11 @@ fn collect_smodel_node(value: &serde_json::Value, out: &mut TreeInfo) {
                 .unwrap_or("")
                 .to_ascii_lowercase();
             if let Some(tag) = tag {
-                if api.contains("physics") {
+                if api == "physics" {
                     out.physics_tags.push(tag.into());
-                } else if api.contains("study") {
+                } else if api == "study" {
                     out.study_tags.push(tag.into());
-                } else if api.contains("material") {
+                } else if api == "material" {
                     out.material_tags.push(tag.into());
                 }
             }
@@ -281,4 +281,53 @@ fn merge_sorted(mut a: Vec<String>, mut b: Vec<String>) -> Vec<String> {
 fn sort_dedup(values: &mut Vec<String>) {
     values.sort();
     values.dedup();
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{parse_model_tree, parse_smodel_tags};
+
+    #[test]
+    fn xml_inventory_distinguishes_objects_from_lists_and_features() {
+        let tree = parse_model_tree(
+            r#"<Model>
+              <PhysicsList tag="physics"><Physics tag="heat">
+                <PhysicsFeature tag="flux"/><PhysicsProp tag="settings"/>
+              </Physics></PhysicsList>
+              <MultiphysicsCoupling tag="coupling"/>
+              <StudyList tag="study"><Study tag="analysis">
+                <StudyFeature tag="step"/>
+              </Study></StudyList>
+              <MaterialList tag="material"><Material tag="copper">
+                <MaterialModel tag="properties"/>
+              </Material></MaterialList>
+            </Model>"#,
+        )
+        .unwrap();
+        assert_eq!(tree.physics_tags, ["heat"]);
+        assert_eq!(tree.study_tags, ["analysis"]);
+        assert_eq!(tree.material_tags, ["copper"]);
+    }
+
+    #[test]
+    fn json_inventory_recurses_without_including_child_classes() {
+        let tree = parse_smodel_tags(
+            r#"{"nodes":[
+              {"apiClass":"PhysicsList","tag":"physics","nodes":[
+                {"apiClass":"Physics","tag":"heat","nodes":[
+                  {"apiClass":"PhysicsFeature","tag":"flux"}]},
+                {"apiClass":"Physics","tag":"flow"},
+                {"apiClass":"Physics","tag":"heat"}]},
+              {"apiClass":"MultiphysicsCoupling","tag":"coupling"},
+              {"type":"Study","tag":"analysis","nodes":[
+                {"type":"StudyFeature","tag":"step"}]},
+              {"type":"material","tag":"copper","nodes":[
+                {"type":"MaterialModel","tag":"properties"}]}
+            ]}"#,
+        )
+        .unwrap();
+        assert_eq!(tree.physics_tags, ["flow", "heat"]);
+        assert_eq!(tree.study_tags, ["analysis"]);
+        assert_eq!(tree.material_tags, ["copper"]);
+    }
 }
