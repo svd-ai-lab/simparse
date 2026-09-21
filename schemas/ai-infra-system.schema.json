@@ -1,0 +1,143 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:simparse:ai-infra-system:v0",
+  "title": "AI Infra System IR v0 (draft)",
+  "description": "A compact inspection manifest for AI infrastructure hardware, including cooling, advanced packaging and 3D IC. CAD and CAE are the initial dialects; software extensions retain native details.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "dialects"
+  ],
+  "properties": {
+    "schema": {
+      "const": "ai-infra-system/v0"
+    },
+    "dialects": {
+      "type": "object",
+      "additionalProperties": false,
+      "minProperties": 1,
+      "properties": {
+        "cad": {
+          "$ref": "urn:simparse:dialect:cad:v0"
+        },
+        "cae": {
+          "$ref": "urn:simparse:dialect:cae:v0"
+        }
+      }
+    },
+    "extensions": {
+      "$ref": "#/$defs/extensions"
+    },
+    "warnings": {
+      "$ref": "#/$defs/warnings"
+    }
+  },
+  "$defs": {
+    "id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "unit": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Observed source unit text. No automatic conversion; omit unknown units."
+    },
+    "artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "uri"
+      ],
+      "properties": {
+        "uri": {
+          "type": "string",
+          "minLength": 1,
+          "format": "uri-reference",
+          "pattern": "^(?![dD][aA][tT][aA]:)\\S+$",
+          "description": "Artifact URI relative to the containing IR file, or an absolute URI. A dialect reference may use a JSON Pointer fragment. Data URIs are forbidden."
+        },
+        "format": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$",
+          "description": "Digest of the referenced file's exact bytes, not a selected fragment. Omit for a same-document reference."
+        }
+      }
+    },
+    "value": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "scope": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Observed parameter namespace or component; omission does not establish global scope."
+        },
+        "expression": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Source expression, preserved without evaluation or unit conversion."
+        },
+        "unit": {
+          "$ref": "#/$defs/unit"
+        }
+      }
+    },
+    "extensions": {
+      "type": "object",
+      "maxProperties": 16,
+      "propertyNames": {
+        "pattern": "^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)*$"
+      },
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "version"
+        ],
+        "properties": {
+          "version": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Extension contract version, independent of the software product version."
+          },
+          "attributes": {
+            "type": "object",
+            "maxProperties": 32,
+            "additionalProperties": {
+              "type": [
+                "string",
+                "number",
+                "boolean"
+              ],
+              "maxLength": 1024
+            },
+            "description": "Small software-specific scalar facts. Nested structures and bulk data belong in the referenced artifact."
+          },
+          "artifact": {
+            "$ref": "#/$defs/artifact"
+          }
+        }
+      }
+    },
+    "warnings": {
+      "type": "array",
+      "maxItems": 64,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    }
+  }
+}

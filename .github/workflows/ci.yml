@@ -6,6 +6,16 @@ on:
     branches: [main]
 
 jobs:
+  ir-contract:
+    name: AI Infra System IR contract
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install -r tests/ir/requirements.txt
+      - run: python -m unittest discover -s tests/ir -p 'test_*.py' -v
   rust:
     name: Rust (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
@@ -22,5 +32,6 @@ jobs:
       - run: cargo fmt --all -- --check
       - run: cargo clippy --workspace --all-targets -- -D warnings
       - run: cargo test --workspace
+      - run: cargo test -p simparse-core --example ir_asset_probe
       - run: python -m pip install maturin
       - run: python -m maturin build --manifest-path crates/simparse-py/Cargo.toml --interpreter python

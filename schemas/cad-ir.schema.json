@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:simparse:dialect:cad:v0",
+  "title": "AI Infra System IR: CAD dialect v0 (draft)",
+  "description": "A compact geometry manifest. Geometry and large inventories remain in external artifacts.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["version", "source"],
+  "properties": {
+    "version": { "const": 0 },
+    "source": { "$ref": "urn:simparse:ai-infra-system:v0#/$defs/artifact" },
+    "length_unit": { "$ref": "urn:simparse:ai-infra-system:v0#/$defs/unit" },
+    "geometry": {
+      "$ref": "urn:simparse:ai-infra-system:v0#/$defs/artifact",
+      "description": "Optional geometry export when different from source; no inline B-rep or tessellation."
+    },
+    "counts": {
+      "description": "Known totals in the source, not lengths of the inline entity list. Omit unknown counts.",
+      "type": "object",
+      "propertyNames": { "enum": ["assembly", "body", "face", "edge", "vertex", "mesh"] },
+      "additionalProperties": { "type": "integer", "minimum": 0 }
+    },
+    "entities": {
+      "description": "Only entities useful to the consumer, for example those referenced by CAE selections. Not an exhaustive topology inventory.",
+      "type": "array",
+      "maxItems": 64,
+      "items": { "$ref": "#/$defs/entity" }
+    },
+    "inventory": {
+      "$ref": "urn:simparse:ai-infra-system:v0#/$defs/artifact",
+      "description": "Optional external entity inventory for records omitted from the manifest."
+    },
+    "extensions": { "$ref": "urn:simparse:ai-infra-system:v0#/$defs/extensions" },
+    "warnings": { "$ref": "urn:simparse:ai-infra-system:v0#/$defs/warnings" }
+  },
+  "$defs": {
+    "entity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "kind"],
+      "properties": {
+        "id": { "$ref": "urn:simparse:ai-infra-system:v0#/$defs/id" },
+        "kind": { "enum": ["assembly", "body", "face", "edge", "vertex", "mesh", "unknown"] },
+        "name": { "type": "string", "minLength": 1 },
+        "native_ref": { "type": "string", "minLength": 1 },
+        "parent_id": {
+          "$ref": "urn:simparse:ai-infra-system:v0#/$defs/id",
+          "description": "Optional containment parent in this CAD document or its inventory, not B-rep adjacency."
+        },
+        "extensions": { "$ref": "urn:simparse:ai-infra-system:v0#/$defs/extensions" }
+      }
+    }
+  }
+}

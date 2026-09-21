@@ -1,0 +1,206 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:simparse:dialect:cae:v0",
+  "title": "AI Infra System IR: CAE dialect v0 (draft)",
+  "description": "A compact analysis manifest. Large setup inventories, selections, meshes and result data remain in external artifacts.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "version",
+    "source"
+  ],
+  "properties": {
+    "version": {
+      "const": 0
+    },
+    "source": {
+      "$ref": "urn:simparse:ai-infra-system:v0#/$defs/artifact"
+    },
+    "cad": {
+      "$ref": "urn:simparse:ai-infra-system:v0#/$defs/artifact",
+      "description": "Optional CAD dialect reference, e.g. #/dialects/cad or geometry.json#/dialects/cad. Selection entity IDs resolve in that dialect or its inventory."
+    },
+    "parameters": {
+      "type": "array",
+      "maxItems": 64,
+      "items": {
+        "$ref": "urn:simparse:ai-infra-system:v0#/$defs/value"
+      }
+    },
+    "features": {
+      "description": "Selected observed setup features, not an exhaustive or executable analysis definition.",
+      "type": "array",
+      "maxItems": 64,
+      "items": {
+        "$ref": "#/$defs/feature"
+      }
+    },
+    "setup": {
+      "$ref": "urn:simparse:ai-infra-system:v0#/$defs/artifact",
+      "description": "Optional external setup inventory or native input, including parameters and features too large to inline."
+    },
+    "mesh": {
+      "$ref": "urn:simparse:ai-infra-system:v0#/$defs/artifact"
+    },
+    "results": {
+      "type": "array",
+      "maxItems": 64,
+      "items": {
+        "$ref": "#/$defs/result"
+      }
+    },
+    "result_inventory": {
+      "$ref": "urn:simparse:ai-infra-system:v0#/$defs/artifact",
+      "description": "Optional external inventory of results too numerous to list inline."
+    },
+    "extensions": {
+      "$ref": "urn:simparse:ai-infra-system:v0#/$defs/extensions"
+    },
+    "warnings": {
+      "$ref": "urn:simparse:ai-infra-system:v0#/$defs/warnings"
+    }
+  },
+  "$defs": {
+    "selection": {
+      "type": "object",
+      "additionalProperties": false,
+      "minProperties": 1,
+      "properties": {
+        "entity_ids": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 64,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "urn:simparse:ai-infra-system:v0#/$defs/id"
+          },
+          "description": "The complete known selection in the referenced CAD dialect. Use an artifact for a larger set; never truncate a selection."
+        },
+        "native_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "artifact": {
+          "$ref": "urn:simparse:ai-infra-system:v0#/$defs/artifact"
+        }
+      }
+    },
+    "feature": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "kind"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "urn:simparse:ai-infra-system:v0#/$defs/id"
+        },
+        "kind": {
+          "enum": [
+            "analysis",
+            "material",
+            "physics",
+            "condition",
+            "interface",
+            "study",
+            "mesh",
+            "unknown"
+          ]
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "native_type": {
+          "type": "string",
+          "minLength": 1
+        },
+        "native_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "parent_id": {
+          "$ref": "urn:simparse:ai-infra-system:v0#/$defs/id"
+        },
+        "enabled": {
+          "type": "boolean",
+          "description": "Observed feature flag only. Omit when unknown; does not establish effective activation in a study."
+        },
+        "selection": {
+          "$ref": "#/$defs/selection"
+        },
+        "properties": {
+          "type": "array",
+          "maxItems": 64,
+          "items": {
+            "$ref": "urn:simparse:ai-infra-system:v0#/$defs/value"
+          }
+        },
+        "extensions": {
+          "$ref": "urn:simparse:ai-infra-system:v0#/$defs/extensions"
+        }
+      }
+    },
+    "result": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "data"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "urn:simparse:ai-infra-system:v0#/$defs/id"
+        },
+        "data": {
+          "$ref": "urn:simparse:ai-infra-system:v0#/$defs/artifact"
+        },
+        "native_ref": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Optional selector within the data artifact, such as an HDF5 dataset path."
+        },
+        "quantity": {
+          "type": "string",
+          "minLength": 1
+        },
+        "unit": {
+          "$ref": "urn:simparse:ai-infra-system:v0#/$defs/unit"
+        },
+        "columns": {
+          "description": "Selected table-column metadata; values stay in the data artifact.",
+          "type": "array",
+          "maxItems": 64,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "index",
+              "header"
+            ],
+            "properties": {
+              "index": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "header": {
+                "type": "string"
+              },
+              "quantity": {
+                "type": "string",
+                "minLength": 1
+              },
+              "unit": {
+                "$ref": "urn:simparse:ai-infra-system:v0#/$defs/unit"
+              }
+            }
+          }
+        },
+        "extensions": {
+          "$ref": "urn:simparse:ai-infra-system:v0#/$defs/extensions"
+        }
+      }
+    }
+  }
+}

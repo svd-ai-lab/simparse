@@ -844,6 +844,7 @@ dependencies = [
  "schemars",
  "serde",
  "serde_json",
+ "sha2",
  "simparse-hdf5",
  "tar",
  "tempfile",

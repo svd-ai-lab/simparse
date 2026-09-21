@@ -1,0 +1,198 @@
+{
+  "schema": "ai-infra-system/v0",
+  "dialects": {
+    "cad": {
+      "source": {
+        "uri": "artifacts/cooling-component.step",
+        "format": "step"
+      },
+      "length_unit": "mm",
+      "counts": {
+        "body": 1,
+        "face": 6,
+        "edge": 12,
+        "vertex": 8
+      },
+      "entities": [
+        {
+          "id": "block",
+          "kind": "body",
+          "name": "Cooling component",
+          "native_ref": "#100"
+        },
+        {
+          "id": "hot-face",
+          "kind": "face",
+          "parent_id": "block",
+          "native_ref": "#110"
+        },
+        {
+          "id": "cold-face",
+          "kind": "face",
+          "parent_id": "block",
+          "native_ref": "#111"
+        }
+      ],
+      "inventory": {
+        "uri": "artifacts/cooling-component.entities.jsonl",
+        "format": "jsonl"
+      },
+      "version": 0
+    },
+    "cae": {
+      "source": {
+        "uri": "artifacts/cooling-component.mph",
+        "format": "comsol-mph"
+      },
+      "cad": {
+        "uri": "#/dialects/cad"
+      },
+      "parameters": [
+        {
+          "name": "T_hot",
+          "expression": "373.15",
+          "unit": "K"
+        },
+        {
+          "name": "T_cold",
+          "expression": "293.15",
+          "unit": "K"
+        }
+      ],
+      "features": [
+        {
+          "id": "mat1",
+          "kind": "material",
+          "name": "Example solid",
+          "selection": {
+            "entity_ids": [
+              "block"
+            ]
+          },
+          "properties": [
+            {
+              "name": "thermal_conductivity",
+              "expression": "200",
+              "unit": "W/(m*K)"
+            }
+          ]
+        },
+        {
+          "id": "ht",
+          "kind": "physics",
+          "native_type": "HeatTransferInSolids",
+          "enabled": true,
+          "selection": {
+            "entity_ids": [
+              "block"
+            ]
+          },
+          "extensions": {
+            "comsol": {
+              "version": "0",
+              "attributes": {
+                "tag": "ht"
+              }
+            }
+          }
+        },
+        {
+          "id": "hot",
+          "kind": "condition",
+          "parent_id": "ht",
+          "native_type": "Temperature",
+          "enabled": true,
+          "selection": {
+            "entity_ids": [
+              "hot-face"
+            ]
+          },
+          "properties": [
+            {
+              "name": "T0",
+              "expression": "T_hot"
+            }
+          ]
+        },
+        {
+          "id": "cold",
+          "kind": "condition",
+          "parent_id": "ht",
+          "native_type": "Temperature",
+          "enabled": true,
+          "selection": {
+            "entity_ids": [
+              "cold-face"
+            ]
+          },
+          "properties": [
+            {
+              "name": "T0",
+              "expression": "T_cold"
+            }
+          ]
+        },
+        {
+          "id": "stationary",
+          "kind": "study",
+          "native_type": "Stationary",
+          "enabled": true
+        }
+      ],
+      "setup": {
+        "uri": "artifacts/cooling-component.setup.json",
+        "format": "json"
+      },
+      "mesh": {
+        "uri": "artifacts/cooling-component.mesh.h5",
+        "format": "hdf5"
+      },
+      "results": [
+        {
+          "id": "temperature-field",
+          "data": {
+            "uri": "artifacts/cooling-component.results.h5",
+            "format": "hdf5"
+          },
+          "native_ref": "/fields/T",
+          "quantity": "temperature",
+          "unit": "K"
+        },
+        {
+          "id": "temperature-probes",
+          "data": {
+            "uri": "artifacts/cooling-component.probes.csv",
+            "format": "csv"
+          },
+          "columns": [
+            {
+              "index": 0,
+              "header": "x (mm)",
+              "quantity": "x",
+              "unit": "mm"
+            },
+            {
+              "index": 1,
+              "header": "T (K)",
+              "quantity": "temperature",
+              "unit": "K"
+            }
+          ]
+        }
+      ],
+      "version": 0,
+      "extensions": {
+        "comsol": {
+          "version": "0",
+          "attributes": {
+            "component": "comp1"
+          },
+          "artifact": {
+            "uri": "artifacts/cooling-component.comsol.json",
+            "format": "json"
+          }
+        }
+      }
+    }
+  }
+}

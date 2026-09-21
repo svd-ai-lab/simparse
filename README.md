@@ -22,6 +22,12 @@ It focuses on lightweight agent workflows: metadata, inventory, quick directory
 scans, and deciding when a heavier vendor or Python tool should be called next.
 See [tool design principles](docs/design-principles.md).
 
+The [draft AI Infra System IR](docs/ir.md) defines compact inspection manifests
+for cooling, advanced packaging and 3D IC, with CAD/CAE dialects and software
+extensions. Geometry, meshes and result data stay in referenced artifacts.
+Schemas, examples and validation tools are available; the CLI and Python APIs
+do not emit this draft yet.
+
 ## CLI
 
 ```powershell
