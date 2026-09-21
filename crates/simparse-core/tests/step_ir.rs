@@ -186,3 +186,24 @@ fn oversized_names_are_omitted_whole_with_explicit_counts() {
     assert_eq!(attrs["omitted_feature_count"], 100 - n);
     assert!(serde_json::to_vec(&ir).unwrap().len() <= 16384);
 }
+
+#[test]
+fn long_product_identifier_does_not_shift_name_or_description() {
+    let dir = tempdir().unwrap();
+    let path = dir.path().join("long.step");
+    std::fs::write(
+        &path,
+        step(&format!(
+            "#1=PRODUCT('{}','actual name','description',());",
+            "x".repeat(600)
+        )),
+    )
+    .unwrap();
+    let FormatSummary::Step(data) = inspect_path(&path, InspectOptions::default())
+        .unwrap()
+        .summary
+    else {
+        panic!()
+    };
+    assert_eq!(data.products[0].name, "actual name");
+}

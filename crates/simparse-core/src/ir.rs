@@ -213,15 +213,30 @@ pub(crate) fn project(result: &SimparseResult) -> Value {
     }
     // Drop whole features, never shorten an identity or expression to fit.
     while serde_json::to_vec(&out).is_ok_and(|v| v.len() > MANIFEST_BYTES) {
-        let Some(items) = out["dialects"][key]["features"].as_array_mut() else {
-            break;
-        };
-        if items.pop().is_none() {
-            break;
+        if key == "cad" {
+            let attrs = out["dialects"][key]["extensions"][namespace]["attributes"]
+                .as_object_mut()
+                .unwrap();
+            let last = attrs
+                .keys()
+                .rfind(|k| k.starts_with("length_unit_declaration_"))
+                .cloned();
+            let Some(last) = last else {
+                break;
+            };
+            attrs.remove(&last);
+            attrs.insert("samples_omitted".into(), json!(true));
+        } else {
+            let Some(items) = out["dialects"][key]["features"].as_array_mut() else {
+                break;
+            };
+            if items.pop().is_none() {
+                break;
+            }
+            let omitted = features.observed - items.len();
+            out["dialects"][key]["extensions"][namespace]["attributes"]["omitted_feature_count"] =
+                json!(omitted);
         }
-        let omitted = features.observed - items.len();
-        out["dialects"][key]["extensions"][namespace]["attributes"]["omitted_feature_count"] =
-            json!(omitted);
     }
     out
 }

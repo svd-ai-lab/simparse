@@ -113,7 +113,14 @@ pub fn inspect_step(path: &Path, max_record_bytes: usize) -> Result<StepSummary>
                     in_data = true;
                     data_seen = true;
                 } else if !in_data && text.starts_with("FILE_SCHEMA") {
-                    out.schemas = strings(text).into_iter().take(SAMPLE).collect();
+                    let schemas = strings(text);
+                    out.samples_omitted |=
+                        schemas.len() > SAMPLE || schemas.iter().any(|s| s.len() > TEXT_LIMIT);
+                    out.schemas = schemas
+                        .into_iter()
+                        .take(SAMPLE)
+                        .filter(|s| s.len() <= TEXT_LIMIT)
+                        .collect();
                 } else if in_data && !ended {
                     observe(text, &mut out, &mut counts);
                 }
@@ -271,9 +278,9 @@ fn strings(text: &str) -> Vec<String> {
             }
             value.push(c);
         }
-        if value.len() <= TEXT_LIMIT {
-            out.push(value);
-        }
+        // Keep positions even for long strings: dropping the first PRODUCT
+        // attribute would incorrectly promote its description to its name.
+        out.push(value);
     }
     out
 }
