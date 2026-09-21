@@ -1,0 +1,5 @@
+# Keep benchmark provenance hashes stable across Windows and Unix checkouts.
+/benchmarks/*.py text eol=lf
+/benchmarks/*.json text eol=lf
+/artifacts/public-benchmark.json text eol=lf
+/artifacts/public-benchmark.svg text eol=lf

@@ -1,270 +1,1197 @@
 {
-  "benchmark": "simparse public artifact scan comparison",
-  "generated_at_utc": "2026-07-07T05:59:12+00:00",
-  "artifact_manifest": "benchmarks/public-artifacts.json",
-  "source_policy": "public URLs only; downloaded files are cached under target/ and are not committed",
-  "workload": {
-    "iterations": 5,
-    "primary_scenario": "agent tool call: one external command scans one public artifact group",
-    "simparse_tool_call": "target/release/simparse scan <case-cache-dir> --jsonl --include <patterns>",
-    "python_tool_call": "python benchmarks/compare.py --python-worker <baseline> --python-worker-dir <case-cache-dir>",
-    "python_in_process": "same Python baseline function called inside the benchmark process"
+  "schema_version": 2,
+  "benchmark": "simparse public single-file inspection",
+  "generated_at_utc": "2026-09-21T09:02:58+00:00",
+  "source_revision": "3f51bc7ac2385c963043c51273a80fadbe656827",
+  "runner_sha256": "75dcecfbe7f6e94594a3429d759dcc885e954c590cbfe00d83dfd853326f4513",
+  "manifest_sha256": "1df0e244d2a358f7676868ccf97885aabba454bf57ab876f5b29a58c69383a5b",
+  "environment": {
+    "os": "Windows",
+    "os_release": "11",
+    "architecture": "AMD64",
+    "cpu": "Intel(R) Core(TM) Ultra 7 155H",
+    "logical_cpus": 22,
+    "python": "3.14.3",
+    "rustc": "rustc 1.95.0 (59807616e 2026-04-14)",
+    "build_profile": "release",
+    "filesystem_cache": "warm; no cache flushing"
   },
+  "protocol": {
+    "command": "simparse inspect <file> --json --summary",
+    "iterations_per_file": 11,
+    "warmups_per_file": 1,
+    "order_seed": 1729,
+    "order": "one invocation per file per round; deterministic shuffled order; serial execution",
+    "timing": "wall time around fresh subprocess, including startup, extraction and stdout capture; excludes download, build, JSON decoding and validation",
+    "row_latency": "median of per-file median times; whiskers span minimum to maximum per-file median",
+    "ir_size": "compact UTF-8 JSON of the ir field only, ensure_ascii=False; includes reference handles, excludes external source artifacts",
+    "size_range": "minimum to maximum across files; median used for the bar",
+    "scope": "shallow metadata inspection; not full model parsing, solver execution, extraction accuracy or lossless compression"
+  },
+  "aggregate": {
+    "file_count": 26,
+    "input_bytes_total": 48665165,
+    "input_bytes": {
+      "median": 1138600.0,
+      "min": 4404,
+      "max": 7931976
+    },
+    "cli_ms": {
+      "median": 14.206199999999999,
+      "min": 11.9644,
+      "max": 30.8322
+    },
+    "ir_bytes": {
+      "median": 956.5,
+      "min": 658,
+      "max": 1877
+    },
+    "compact_summary_json_bytes": {
+      "median": 2801.0,
+      "min": 1705,
+      "max": 5028
+    }
+  },
+  "negative_controls": [
+    {
+      "filename": "icepak-dme.stp",
+      "sha256": "10d3dfa0a48e388891710f6dcf37aa51a2202cebcb00719764f53632770e757f",
+      "status": "rejected_as_expected",
+      "error": "not a STEP Part 21 exchange file"
+    }
+  ],
   "results": [
     {
-      "case": "abaqus_inp",
-      "format": "abaqus-inp",
-      "artifacts": [
-        {
-          "filename": "abaqus2dyna-example.inp",
-          "bytes": 2080946,
-          "source_url": "https://github.com/tbhartman/abaqus2dyna/blob/master/example.inp",
-          "source_repo": "tbhartman/abaqus2dyna",
-          "license": "MIT"
-        },
-        {
-          "filename": "magicpbc-irregular-3dmesh.inp",
-          "bytes": 333486,
-          "source_url": "https://github.com/mo-hanxuan/MagicPBC/blob/master/tests/irregular_3Dmesh.inp",
-          "source_repo": "mo-hanxuan/MagicPBC",
-          "license": "MIT"
-        },
-        {
-          "filename": "magicpbc-irregular-3dmesh-deformed.inp",
-          "bytes": 300192,
-          "source_url": "https://github.com/mo-hanxuan/MagicPBC/blob/master/tests/irregular_3Dmesh_deformed.inp",
-          "source_repo": "mo-hanxuan/MagicPBC",
-          "license": "MIT"
-        },
-        {
-          "filename": "abaqus-us-test-indent-umat.inp",
-          "bytes": 29919,
-          "source_url": "https://github.com/jgomezc1/ABAQUS-US/blob/master/INPUT_FILES/TEST_INDENT_UMAT.inp",
-          "source_repo": "jgomezc1/ABAQUS-US",
-          "license": "MIT"
-        },
-        {
-          "filename": "abaqus-reader-cantilever-beam.inp",
-          "bytes": 4404,
-          "source_url": "https://github.com/ahojukka5/AbaqusReader.jl/blob/master/test/test_comprehensive/cantilever_beam.inp",
-          "source_repo": "ahojukka5/AbaqusReader.jl",
-          "license": "MIT"
-        }
-      ],
-      "simparse_cli_ms": {
-        "median_ms": 22.935,
-        "min_ms": 21.511,
-        "max_ms": 53.695
-      },
-      "python_tool_call_ms": {
-        "median_ms": 202.599,
-        "min_ms": 193.029,
-        "max_ms": 252.924
-      },
-      "python_in_process_ms": {
-        "median_ms": 14.508,
-        "min_ms": 13.511,
-        "max_ms": 16.689
-      },
-      "python_baseline_status": "ok",
-      "simparse_vs_python_tool_call_speedup": 8.834,
-      "simparse_vs_python_in_process_speedup": 0.633,
-      "vendor_native_ms": null,
-      "vendor_native_status": "not_run",
-      "vendor_native_note": "requires locally licensed vendor software or APIs"
-    },
-    {
       "case": "comsol_mph",
+      "label": "COMSOL",
       "format": "comsol-mph",
-      "artifacts": [
+      "aggregate": {
+        "file_count": 6,
+        "input_bytes_total": 7424381,
+        "input_bytes": {
+          "median": 1138600.0,
+          "min": 666448,
+          "max": 1786985
+        },
+        "cli_ms": {
+          "median": 15.58185,
+          "min": 15.183,
+          "max": 17.3402
+        },
+        "ir_bytes": {
+          "median": 976.0,
+          "min": 880,
+          "max": 1093
+        },
+        "compact_summary_json_bytes": {
+          "median": 2732.0,
+          "min": 2516,
+          "max": 2873
+        }
+      },
+      "files": [
         {
           "filename": "comsol-capacitance-q2.mph",
-          "bytes": 666448,
-          "source_url": "https://github.com/sepidehkhakzad/ComsolProjects/blob/main/Capacitance%20Measurement/Q2.mph",
-          "source_repo": "sepidehkhakzad/ComsolProjects",
-          "license": "Apache-2.0"
+          "source_url": "https://github.com/sepidehkhakzad/ComsolProjects/blob/ef51ae5f4991caa325772244bdb76a1d42ea6bbc/Capacitance%20Measurement/Q2.mph",
+          "sha256": "d505497a9a8f68120cc90ea5778d0fb4993be71b034f10da9b215f34f190b17d",
+          "input_bytes": 666448,
+          "samples_ms": [
+            15.8936,
+            15.2376,
+            15.362,
+            162.6028,
+            15.6674,
+            15.5051,
+            15.5721,
+            15.6498,
+            53.3574,
+            15.8614,
+            15.7679
+          ],
+          "cli_ms": {
+            "median": 15.6674,
+            "min": 15.2376,
+            "max": 162.6028
+          },
+          "ir_bytes": 974,
+          "ir_sha256": "61e02d606035afa53c3ffae4f9866807a7bc5a8a9f452167d7bffcfd36224b18",
+          "compact_summary_json_bytes": 2754,
+          "cli_stdout_bytes": 4778,
+          "warning_count": 0,
+          "source_truncated": false,
+          "ir_dialects": [
+            "cae"
+          ],
+          "ir_feature_count": 5
         },
         {
           "filename": "comsol-capacitance-q2-circuit.mph",
-          "bytes": 1786985,
-          "source_url": "https://github.com/sepidehkhakzad/ComsolProjects/blob/main/Capacitance%20Measurement/Q2%20electrical%20circuit%20as%20excitation.mph",
-          "source_repo": "sepidehkhakzad/ComsolProjects",
-          "license": "Apache-2.0"
+          "source_url": "https://github.com/sepidehkhakzad/ComsolProjects/blob/ef51ae5f4991caa325772244bdb76a1d42ea6bbc/Capacitance%20Measurement/Q2%20electrical%20circuit%20as%20excitation.mph",
+          "sha256": "74429c9bdb86a46e38a26ee17d471e34c31755099821dbb9df8ce4cfa1b05520",
+          "input_bytes": 1786985,
+          "samples_ms": [
+            16.4437,
+            16.2426,
+            15.5381,
+            16.5625,
+            16.6232,
+            15.3697,
+            15.7894,
+            38.0999,
+            48.7945,
+            16.3245,
+            16.4483
+          ],
+          "cli_ms": {
+            "median": 16.4437,
+            "min": 15.3697,
+            "max": 48.7945
+          },
+          "ir_bytes": 1039,
+          "ir_sha256": "95b9a79e36bcc9872e388223e3af97ba2d2c3c66481a77722055e48eefc55767",
+          "compact_summary_json_bytes": 2837,
+          "cli_stdout_bytes": 4936,
+          "warning_count": 0,
+          "source_truncated": false,
+          "ir_dialects": [
+            "cae"
+          ],
+          "ir_feature_count": 6
         },
         {
           "filename": "comsol-capacitive-sensors-q2.mph",
-          "bytes": 1119877,
-          "source_url": "https://github.com/sepidehkhakzad/ComsolProjects/blob/main/Capacitive%20Sensors/Q2.mph",
-          "source_repo": "sepidehkhakzad/ComsolProjects",
-          "license": "Apache-2.0"
+          "source_url": "https://github.com/sepidehkhakzad/ComsolProjects/blob/ef51ae5f4991caa325772244bdb76a1d42ea6bbc/Capacitive%20Sensors/Q2.mph",
+          "sha256": "0aa9227243715a7348547f50c7bd3508ed5ade478f1c2eb19f678c96b19ff897",
+          "input_bytes": 1119877,
+          "samples_ms": [
+            16.8048,
+            14.6542,
+            14.6901,
+            162.8178,
+            14.8803,
+            15.4963,
+            15.3077,
+            165.6892,
+            16.412,
+            15.6111,
+            14.6568
+          ],
+          "cli_ms": {
+            "median": 15.4963,
+            "min": 14.6542,
+            "max": 165.6892
+          },
+          "ir_bytes": 935,
+          "ir_sha256": "9a44f04404fe9ee7fce597082f7ff4c0c4fb63909584e9cc6268e7da2deeff02",
+          "compact_summary_json_bytes": 2710,
+          "cli_stdout_bytes": 4648,
+          "warning_count": 0,
+          "source_truncated": false,
+          "ir_dialects": [
+            "cae"
+          ],
+          "ir_feature_count": 4
         },
         {
           "filename": "comsol-diaphragm-pressure-sensor.mph",
-          "bytes": 1157323,
-          "source_url": "https://github.com/sepidehkhakzad/ComsolProjects/blob/main/Diaphragm/capacitive_pressure_sensor.mph",
-          "source_repo": "sepidehkhakzad/ComsolProjects",
-          "license": "Apache-2.0"
+          "source_url": "https://github.com/sepidehkhakzad/ComsolProjects/blob/ef51ae5f4991caa325772244bdb76a1d42ea6bbc/Diaphragm/capacitive_pressure_sensor.mph",
+          "sha256": "aa88faa10ae7b713c4f3c5164aa1efedb6018df28f2b563b803c5dd9219d7f63",
+          "input_bytes": 1157323,
+          "samples_ms": [
+            16.5895,
+            14.9113,
+            15.5002,
+            15.1035,
+            14.7917,
+            15.0805,
+            15.183,
+            15.0496,
+            16.6067,
+            21.2769,
+            164.0384
+          ],
+          "cli_ms": {
+            "median": 15.183,
+            "min": 14.7917,
+            "max": 164.0384
+          },
+          "ir_bytes": 1093,
+          "ir_sha256": "2d05bfa8485c4a5fa1f205cb1cc96ae7294d3501b4d82f2c1be419cc5333b603",
+          "compact_summary_json_bytes": 2873,
+          "cli_stdout_bytes": 5036,
+          "warning_count": 0,
+          "source_truncated": false,
+          "ir_dialects": [
+            "cae"
+          ],
+          "ir_feature_count": 7
         },
         {
           "filename": "comsol-heat-transfer-solids.mph",
-          "bytes": 1679332,
-          "source_url": "https://github.com/sepidehkhakzad/ComsolProjects/blob/main/Heat%20Transfer%20in%20Solids/HTS.mph",
-          "source_repo": "sepidehkhakzad/ComsolProjects",
-          "license": "Apache-2.0"
+          "source_url": "https://github.com/sepidehkhakzad/ComsolProjects/blob/ef51ae5f4991caa325772244bdb76a1d42ea6bbc/Heat%20Transfer%20in%20Solids/HTS.mph",
+          "sha256": "07b5baedc00999c48c4690c6d23912ee750f3088fafb7f299957e4f1a9f09a24",
+          "input_bytes": 1679332,
+          "samples_ms": [
+            15.4402,
+            15.4412,
+            167.2689,
+            15.8154,
+            15.778,
+            14.0721,
+            15.5185,
+            14.9736,
+            14.5783,
+            14.0882,
+            13.9751
+          ],
+          "cli_ms": {
+            "median": 15.4402,
+            "min": 13.9751,
+            "max": 167.2689
+          },
+          "ir_bytes": 880,
+          "ir_sha256": "3e579cc1631cadaea8329b9e4a8a4943a07de7dfa651d7a421ce32b6de9f1f0d",
+          "compact_summary_json_bytes": 2516,
+          "cli_stdout_bytes": 4368,
+          "warning_count": 0,
+          "source_truncated": false,
+          "ir_dialects": [
+            "cae"
+          ],
+          "ir_feature_count": 3
         },
         {
           "filename": "comsol-magnetic-sensor-q2.mph",
-          "bytes": 1014416,
-          "source_url": "https://github.com/sepidehkhakzad/ComsolProjects/blob/main/Magnetic%20Sensor/Q2.mph",
-          "source_repo": "sepidehkhakzad/ComsolProjects",
-          "license": "Apache-2.0"
+          "source_url": "https://github.com/sepidehkhakzad/ComsolProjects/blob/ef51ae5f4991caa325772244bdb76a1d42ea6bbc/Magnetic%20Sensor/Q2.mph",
+          "sha256": "7cae35318371175f6bcfa2ff91d50d97beb3766e40f3772a85f0586ceda100cb",
+          "input_bytes": 1014416,
+          "samples_ms": [
+            18.4108,
+            16.8782,
+            16.9039,
+            16.7775,
+            18.1481,
+            17.1583,
+            17.3133,
+            17.6827,
+            18.7936,
+            17.3402,
+            17.399
+          ],
+          "cli_ms": {
+            "median": 17.3402,
+            "min": 16.7775,
+            "max": 18.7936
+          },
+          "ir_bytes": 978,
+          "ir_sha256": "8d107b6d5c0b35b780b9dba6710155d634dfca209899c188b989b94bed99a00e",
+          "compact_summary_json_bytes": 2668,
+          "cli_stdout_bytes": 4631,
+          "warning_count": 0,
+          "source_truncated": false,
+          "ir_dialects": [
+            "cae"
+          ],
+          "ir_feature_count": 5
         }
-      ],
-      "simparse_cli_ms": {
-        "median_ms": 45.159,
-        "min_ms": 43.698,
-        "max_ms": 46.517
-      },
-      "python_tool_call_ms": {
-        "median_ms": 270.71,
-        "min_ms": 247.359,
-        "max_ms": 276.56
-      },
-      "python_in_process_ms": {
-        "median_ms": 56.626,
-        "min_ms": 55.649,
-        "max_ms": 67.592
-      },
-      "python_baseline_status": "ok",
-      "simparse_vs_python_tool_call_speedup": 5.995,
-      "simparse_vs_python_in_process_speedup": 1.254,
-      "vendor_native_ms": null,
-      "vendor_native_status": "not_run",
-      "vendor_native_note": "requires locally licensed vendor software or APIs"
-    },
-    {
-      "case": "fluent_hdf5",
-      "format": "fluent-hdf5",
-      "artifacts": [
-        {
-          "filename": "mixing-elbow.cas.h5",
-          "bytes": 3062081,
-          "source_url": "https://github.com/ansys/example-data/blob/main/pyfluent/mixing_elbow/mixing_elbow.cas.h5",
-          "source_repo": "ansys/example-data",
-          "license": "MIT"
-        },
-        {
-          "filename": "mixing-elbow.msh.h5",
-          "bytes": 2806981,
-          "source_url": "https://github.com/ansys/example-data/blob/main/pyfluent/mixing_elbow/mixing_elbow.msh.h5",
-          "source_repo": "ansys/example-data",
-          "license": "MIT"
-        },
-        {
-          "filename": "elbow.msh.h5",
-          "bytes": 2806596,
-          "source_url": "https://github.com/ansys/example-data/blob/main/pyfluent/mixing_elbow/elbow.msh.h5",
-          "source_repo": "ansys/example-data",
-          "license": "MIT"
-        },
-        {
-          "filename": "elbow-param.cas.h5",
-          "bytes": 1228645,
-          "source_url": "https://github.com/ansys/example-data/blob/main/pyfluent/mixing_elbow/elbow_param.cas.h5",
-          "source_repo": "ansys/example-data",
-          "license": "MIT"
-        }
-      ],
-      "simparse_cli_ms": {
-        "median_ms": 22.286,
-        "min_ms": 21.35,
-        "max_ms": 53.197
-      },
-      "python_tool_call_ms": {
-        "median_ms": 436.73,
-        "min_ms": 425.308,
-        "max_ms": 449.352
-      },
-      "python_in_process_ms": {
-        "median_ms": 27.258,
-        "min_ms": 25.995,
-        "max_ms": 34.109
-      },
-      "python_baseline_status": "ok",
-      "simparse_vs_python_tool_call_speedup": 19.597,
-      "simparse_vs_python_in_process_speedup": 1.223,
-      "vendor_native_ms": null,
-      "vendor_native_status": "not_run",
-      "vendor_native_note": "requires locally licensed vendor software or APIs"
+      ]
     },
     {
       "case": "hfss_aedt",
+      "label": "HFSS / AEDT",
       "format": "hfss-aedt",
-      "artifacts": [
+      "aggregate": {
+        "file_count": 3,
+        "input_bytes_total": 407052,
+        "input_bytes": {
+          "median": 64662,
+          "min": 56953,
+          "max": 285437
+        },
+        "cli_ms": {
+          "median": 12.2949,
+          "min": 12.1441,
+          "max": 12.9056
+        },
+        "ir_bytes": {
+          "median": 1244,
+          "min": 1121,
+          "max": 1877
+        },
+        "compact_summary_json_bytes": {
+          "median": 2381,
+          "min": 2228,
+          "max": 3222
+        }
+      },
+      "files": [
         {
           "filename": "trihedral-rcs.aedt",
-          "bytes": 56953,
-          "source_url": "https://github.com/ansys/example-data/blob/main/pyaedt/sbr_convergence/trihedral_rcs.aedt",
-          "source_repo": "ansys/example-data",
-          "license": "MIT"
+          "source_url": "https://github.com/ansys/example-data/blob/f145d8bc209eb5af2161c6b649a374f2ec703200/pyaedt/sbr_convergence/trihedral_rcs.aedt",
+          "sha256": "2430870bbb248a01aaec168f44f52ef03c11c116c7f3228000a6c74ae48a9897",
+          "input_bytes": 56953,
+          "samples_ms": [
+            13.0398,
+            11.9557,
+            167.0872,
+            11.8653,
+            13.4282,
+            11.9501,
+            11.7881,
+            11.7173,
+            14.0702,
+            16.3441,
+            12.1441
+          ],
+          "cli_ms": {
+            "median": 12.1441,
+            "min": 11.7173,
+            "max": 167.0872
+          },
+          "ir_bytes": 1121,
+          "ir_sha256": "548cf0132eed86cfb3d9ef24c284fa6de5045b1e69948c97be5c39b07dd512b8",
+          "compact_summary_json_bytes": 2228,
+          "cli_stdout_bytes": 3806,
+          "warning_count": 0,
+          "source_truncated": false,
+          "ir_dialects": [
+            "cae"
+          ],
+          "ir_feature_count": 6
         },
         {
           "filename": "cable-modeling.aedt",
-          "bytes": 64662,
-          "source_url": "https://github.com/ansys/example-data/blob/main/pyaedt/cable_modeling/cable_modeling.aedt",
-          "source_repo": "ansys/example-data",
-          "license": "MIT"
+          "source_url": "https://github.com/ansys/example-data/blob/f145d8bc209eb5af2161c6b649a374f2ec703200/pyaedt/cable_modeling/cable_modeling.aedt",
+          "sha256": "91c32e2d1f0a6fb02da0fb7bd5325a071cad3d929c5e48f74b058852d480413e",
+          "input_bytes": 64662,
+          "samples_ms": [
+            12.8548,
+            12.6829,
+            12.2949,
+            12.038,
+            11.6407,
+            11.615,
+            11.7181,
+            12.8089,
+            12.4995,
+            11.6293,
+            12.579
+          ],
+          "cli_ms": {
+            "median": 12.2949,
+            "min": 11.615,
+            "max": 12.8548
+          },
+          "ir_bytes": 1244,
+          "ir_sha256": "c8952e97900fd6f1c35591387b6d9e0896ddbdbfb36288d9ba3ae755fe32cb4c",
+          "compact_summary_json_bytes": 2381,
+          "cli_stdout_bytes": 4109,
+          "warning_count": 0,
+          "source_truncated": false,
+          "ir_dialects": [
+            "cae"
+          ],
+          "ir_feature_count": 8
         },
         {
           "filename": "emi-pcb-house.aedt",
-          "bytes": 285437,
-          "source_url": "https://github.com/ansys/example-data/blob/main/pyaedt/eigenmode/emi_PCB_house.aedt",
-          "source_repo": "ansys/example-data",
-          "license": "MIT"
+          "source_url": "https://github.com/ansys/example-data/blob/f145d8bc209eb5af2161c6b649a374f2ec703200/pyaedt/eigenmode/emi_PCB_house.aedt",
+          "sha256": "d8a93e6c398c4b34c1bd0a3a0c8f5369d981d36990cc7047c5de2eca35c7239c",
+          "input_bytes": 285437,
+          "samples_ms": [
+            13.5774,
+            12.5923,
+            12.3563,
+            12.8616,
+            12.6969,
+            13.3524,
+            12.9056,
+            12.2676,
+            14.046,
+            165.325,
+            13.2681
+          ],
+          "cli_ms": {
+            "median": 12.9056,
+            "min": 12.2676,
+            "max": 165.325
+          },
+          "ir_bytes": 1877,
+          "ir_sha256": "51498fee1c1708c972cd5510af675e5c563b962c8cac5d174f07055f5ad1537b",
+          "compact_summary_json_bytes": 3222,
+          "cli_stdout_bytes": 5755,
+          "warning_count": 0,
+          "source_truncated": false,
+          "ir_dialects": [
+            "cae"
+          ],
+          "ir_feature_count": 18
+        }
+      ]
+    },
+    {
+      "case": "icepak_aedt",
+      "label": "Icepak / AEDT",
+      "format": "hfss-aedt",
+      "aggregate": {
+        "file_count": 2,
+        "input_bytes_total": 272338,
+        "input_bytes": {
+          "median": 136169.0,
+          "min": 75852,
+          "max": 196486
         },
+        "cli_ms": {
+          "median": 12.7531,
+          "min": 12.4095,
+          "max": 13.0967
+        },
+        "ir_bytes": {
+          "median": 1124.5,
+          "min": 1101,
+          "max": 1148
+        },
+        "compact_summary_json_bytes": {
+          "median": 2801.0,
+          "min": 2770,
+          "max": 2832
+        }
+      },
+      "files": [
         {
           "filename": "graphics-card.aedt",
-          "bytes": 196486,
-          "source_url": "https://github.com/ansys/example-data/blob/main/pyaedt/icepak/Graphics_card.aedt",
-          "source_repo": "ansys/example-data",
-          "license": "MIT"
+          "source_url": "https://github.com/ansys/example-data/blob/f145d8bc209eb5af2161c6b649a374f2ec703200/pyaedt/icepak/Graphics_card.aedt",
+          "sha256": "03f43302c52294a195454dd304dd2e97f9084445ddf07382de233ba886aab7f3",
+          "input_bytes": 196486,
+          "samples_ms": [
+            13.699,
+            13.0967,
+            12.874,
+            12.6039,
+            160.2251,
+            12.5064,
+            170.4789,
+            165.5,
+            14.9415,
+            12.224,
+            12.8713
+          ],
+          "cli_ms": {
+            "median": 13.0967,
+            "min": 12.224,
+            "max": 170.4789
+          },
+          "ir_bytes": 1101,
+          "ir_sha256": "b625ff4b0bc08552e627a8d7a77a21c6e9245ef8ae39b5fbd0774e2ad8aa3aa8",
+          "compact_summary_json_bytes": 2770,
+          "cli_stdout_bytes": 4643,
+          "warning_count": 0,
+          "source_truncated": false,
+          "ir_dialects": [
+            "cae"
+          ],
+          "ir_feature_count": 5
         },
         {
           "filename": "qfp2.aedt",
-          "bytes": 75852,
-          "source_url": "https://github.com/ansys/example-data/blob/main/pyaedt/icepak_3dcomp/QFP2.aedt",
-          "source_repo": "ansys/example-data",
-          "license": "MIT"
+          "source_url": "https://github.com/ansys/example-data/blob/f145d8bc209eb5af2161c6b649a374f2ec703200/pyaedt/icepak_3dcomp/QFP2.aedt",
+          "sha256": "a87262df5b38748c0c9bbb8706705ae14fb5ecd1c29d8c41dfd258ae4aed45ed",
+          "input_bytes": 75852,
+          "samples_ms": [
+            13.4254,
+            11.9167,
+            12.1903,
+            12.2211,
+            13.5528,
+            11.7443,
+            12.4095,
+            13.1547,
+            12.6411,
+            11.8543,
+            12.6235
+          ],
+          "cli_ms": {
+            "median": 12.4095,
+            "min": 11.7443,
+            "max": 13.5528
+          },
+          "ir_bytes": 1148,
+          "ir_sha256": "43d7a38a83670df871c995270f6b56658891c74d5849d85f661a5927236277d6",
+          "compact_summary_json_bytes": 2832,
+          "cli_stdout_bytes": 4804,
+          "warning_count": 0,
+          "source_truncated": false,
+          "ir_dialects": [
+            "cae"
+          ],
+          "ir_feature_count": 6
+        }
+      ]
+    },
+    {
+      "case": "maxwell_aedt",
+      "label": "Maxwell / AEDT",
+      "format": "hfss-aedt",
+      "aggregate": {
+        "file_count": 1,
+        "input_bytes_total": 145683,
+        "input_bytes": {
+          "median": 145683,
+          "min": 145683,
+          "max": 145683
         },
+        "cli_ms": {
+          "median": 12.7456,
+          "min": 12.7456,
+          "max": 12.7456
+        },
+        "ir_bytes": {
+          "median": 1222,
+          "min": 1222,
+          "max": 1222
+        },
+        "compact_summary_json_bytes": {
+          "median": 2379,
+          "min": 2379,
+          "max": 2379
+        }
+      },
+      "files": [
         {
           "filename": "maxwell-magnetic-force.aedt",
-          "bytes": 145683,
-          "source_url": "https://github.com/ansys/example-data/blob/main/pyaedt/maxwell_magnetic_force/Maxwell_Magnetic_Force.aedt",
-          "source_repo": "ansys/example-data",
-          "license": "MIT"
+          "source_url": "https://github.com/ansys/example-data/blob/f145d8bc209eb5af2161c6b649a374f2ec703200/pyaedt/maxwell_magnetic_force/Maxwell_Magnetic_Force.aedt",
+          "sha256": "b3e6543ffc86e6f4eaf7bed5db284b7cadd9dc014062dcac5f800d4609e9cca6",
+          "input_bytes": 145683,
+          "samples_ms": [
+            13.2431,
+            12.7456,
+            12.5559,
+            12.2537,
+            13.623,
+            12.683,
+            12.5837,
+            11.8726,
+            14.1422,
+            13.5452,
+            165.3469
+          ],
+          "cli_ms": {
+            "median": 12.7456,
+            "min": 11.8726,
+            "max": 165.3469
+          },
+          "ir_bytes": 1222,
+          "ir_sha256": "e4278944662c44a4c26a7f1bce363c5af24910869c0f928319406ac118b4c4eb",
+          "compact_summary_json_bytes": 2379,
+          "cli_stdout_bytes": 4043,
+          "warning_count": 0,
+          "source_truncated": false,
+          "ir_dialects": [
+            "cae"
+          ],
+          "ir_feature_count": 7
         }
-      ],
-      "simparse_cli_ms": {
-        "median_ms": 48.639,
-        "min_ms": 47.25,
-        "max_ms": 51.256
+      ]
+    },
+    {
+      "case": "mechanical",
+      "label": "Mechanical",
+      "format": "ansys-mechanical",
+      "aggregate": {
+        "file_count": 3,
+        "input_bytes_total": 22481344,
+        "input_bytes": {
+          "median": 7403360,
+          "min": 7146008,
+          "max": 7931976
+        },
+        "cli_ms": {
+          "median": 16.3074,
+          "min": 16.2602,
+          "max": 16.8466
+        },
+        "ir_bytes": {
+          "median": 974,
+          "min": 803,
+          "max": 1364
+        },
+        "compact_summary_json_bytes": {
+          "median": 3104,
+          "min": 2853,
+          "max": 3683
+        }
       },
-      "python_tool_call_ms": {
-        "median_ms": 176.636,
-        "min_ms": 171.985,
-        "max_ms": 210.975
+      "files": [
+        {
+          "filename": "simple-bolt.mechdat",
+          "source_url": "https://github.com/ansys/example-data/blob/f145d8bc209eb5af2161c6b649a374f2ec703200/pymechanical/00_basic/example_03_simple_bolt_new.mechdat",
+          "sha256": "d272a2e6f5ec7670b61e8f77ac43162b2fc8b91b8545e8d250e71a58c6847173",
+          "input_bytes": 7403360,
+          "samples_ms": [
+            171.6575,
+            16.3074,
+            15.5619,
+            15.401,
+            15.47,
+            165.6136,
+            15.8727,
+            16.6122,
+            18.248,
+            16.6304,
+            15.9754
+          ],
+          "cli_ms": {
+            "median": 16.3074,
+            "min": 15.401,
+            "max": 171.6575
+          },
+          "ir_bytes": 1364,
+          "ir_sha256": "4c88237ab085e8ae9d604e0de03641259f4a062481d39f86b1b71f5e14286827",
+          "compact_summary_json_bytes": 3683,
+          "cli_stdout_bytes": 6289,
+          "warning_count": 0,
+          "source_truncated": false,
+          "ir_dialects": [
+            "cae"
+          ],
+          "ir_feature_count": 10
+        },
+        {
+          "filename": "cooled-turbine-blade.mechdat",
+          "source_url": "https://github.com/ansys/example-data/blob/f145d8bc209eb5af2161c6b649a374f2ec703200/pymechanical/embedding/Cooled_Turbine_Blade_Meshed.mechdat",
+          "sha256": "0ef68effc5fb9940f886c8000323c7a3e8404aa721c90640814e715caf12f915",
+          "input_bytes": 7931976,
+          "samples_ms": [
+            16.8466,
+            16.2685,
+            15.5268,
+            14.8573,
+            15.8984,
+            16.0124,
+            16.8917,
+            17.058,
+            18.8783,
+            17.2462,
+            18.0563
+          ],
+          "cli_ms": {
+            "median": 16.8466,
+            "min": 14.8573,
+            "max": 18.8783
+          },
+          "ir_bytes": 803,
+          "ir_sha256": "a35fecec99580dd8b65addd8b2d3911bbb4894a21adf44429515f2b6a6d5e5ad",
+          "compact_summary_json_bytes": 2853,
+          "cli_stdout_bytes": 4726,
+          "warning_count": 0,
+          "source_truncated": false,
+          "ir_dialects": [
+            "cae"
+          ],
+          "ir_feature_count": 1
+        },
+        {
+          "filename": "cantilever.mechdat",
+          "source_url": "https://github.com/ansys/example-data/blob/f145d8bc209eb5af2161c6b649a374f2ec703200/pymechanical/embedding/cantilever.mechdat",
+          "sha256": "ba4b8bdc244fb3b4fca5dfd304d58ac5e32dbd874b83efa6b939b6cedbacb1e8",
+          "input_bytes": 7146008,
+          "samples_ms": [
+            16.9225,
+            16.3214,
+            14.7902,
+            15.3747,
+            15.1756,
+            16.2602,
+            15.461,
+            17.2061,
+            16.9339,
+            16.5834,
+            15.5438
+          ],
+          "cli_ms": {
+            "median": 16.2602,
+            "min": 14.7902,
+            "max": 17.2061
+          },
+          "ir_bytes": 974,
+          "ir_sha256": "ba864f189e7a74ffa4384d563a75b9b06967c13cd2820b325fe5c390db6ed8f9",
+          "compact_summary_json_bytes": 3104,
+          "cli_stdout_bytes": 5198,
+          "warning_count": 0,
+          "source_truncated": false,
+          "ir_dialects": [
+            "cae"
+          ],
+          "ir_feature_count": 4
+        }
+      ]
+    },
+    {
+      "case": "fluent_hdf5",
+      "label": "Fluent",
+      "format": "fluent-hdf5",
+      "aggregate": {
+        "file_count": 4,
+        "input_bytes_total": 9904303,
+        "input_bytes": {
+          "median": 2806788.5,
+          "min": 1228645,
+          "max": 3062081
+        },
+        "cli_ms": {
+          "median": 14.02985,
+          "min": 13.0651,
+          "max": 14.6314
+        },
+        "ir_bytes": {
+          "median": 671.0,
+          "min": 658,
+          "max": 672
+        },
+        "compact_summary_json_bytes": {
+          "median": 4685.5,
+          "min": 4595,
+          "max": 4767
+        }
       },
-      "python_in_process_ms": {
-        "median_ms": 5.276,
-        "min_ms": 4.623,
-        "max_ms": 5.766
+      "files": [
+        {
+          "filename": "mixing-elbow.cas.h5",
+          "source_url": "https://github.com/ansys/example-data/blob/f145d8bc209eb5af2161c6b649a374f2ec703200/pyfluent/mixing_elbow/mixing_elbow.cas.h5",
+          "sha256": "8145813f50f989a521ed8d1b02c891c7ca22ccc5fafa35a4eeba011949f19cbc",
+          "input_bytes": 3062081,
+          "samples_ms": [
+            17.3666,
+            13.2424,
+            13.3005,
+            13.358,
+            13.4216,
+            15.1548,
+            13.4422,
+            14.4641,
+            14.0702,
+            13.6193,
+            13.8054
+          ],
+          "cli_ms": {
+            "median": 13.6193,
+            "min": 13.2424,
+            "max": 17.3666
+          },
+          "ir_bytes": 672,
+          "ir_sha256": "77a302c32e298b8c3c1ea5d3bb16dcb82b591a2118954cb7f3c1ebb28849d9c3",
+          "compact_summary_json_bytes": 4767,
+          "cli_stdout_bytes": 10361,
+          "warning_count": 0,
+          "source_truncated": false,
+          "ir_dialects": [
+            "cae"
+          ],
+          "ir_feature_count": 0
+        },
+        {
+          "filename": "mixing-elbow.msh.h5",
+          "source_url": "https://github.com/ansys/example-data/blob/f145d8bc209eb5af2161c6b649a374f2ec703200/pyfluent/mixing_elbow/mixing_elbow.msh.h5",
+          "sha256": "0e449d741dd7cdc48aa3f75e19f1f99281972b9f8d4637da2d1a6be25f9e2cb0",
+          "input_bytes": 2806981,
+          "samples_ms": [
+            163.9453,
+            15.1942,
+            13.4428,
+            13.9776,
+            13.8002,
+            14.1617,
+            14.7954,
+            14.3722,
+            14.8284,
+            14.4404,
+            14.5876
+          ],
+          "cli_ms": {
+            "median": 14.4404,
+            "min": 13.4428,
+            "max": 163.9453
+          },
+          "ir_bytes": 672,
+          "ir_sha256": "94536082c2db536d54426c2cf92d2d455ae749266b2f3e5c86dba92b2923ff82",
+          "compact_summary_json_bytes": 4616,
+          "cli_stdout_bytes": 9854,
+          "warning_count": 0,
+          "source_truncated": false,
+          "ir_dialects": [
+            "cae"
+          ],
+          "ir_feature_count": 0
+        },
+        {
+          "filename": "elbow.msh.h5",
+          "source_url": "https://github.com/ansys/example-data/blob/f145d8bc209eb5af2161c6b649a374f2ec703200/pyfluent/mixing_elbow/elbow.msh.h5",
+          "sha256": "c119705704d9ff7130b8f96d02e968589f682ac5a294d4d1d40d63af4a95a9e6",
+          "input_bytes": 2806596,
+          "samples_ms": [
+            15.6023,
+            164.6594,
+            16.1738,
+            14.1868,
+            14.2088,
+            14.3327,
+            14.1248,
+            14.6314,
+            14.5279,
+            16.0031,
+            14.9732
+          ],
+          "cli_ms": {
+            "median": 14.6314,
+            "min": 14.1248,
+            "max": 164.6594
+          },
+          "ir_bytes": 658,
+          "ir_sha256": "8f328008f41ac670f0f3c138457b19d98a3359abd298b5dc82f542599311a4f7",
+          "compact_summary_json_bytes": 4595,
+          "cli_stdout_bytes": 9833,
+          "warning_count": 0,
+          "source_truncated": false,
+          "ir_dialects": [
+            "cae"
+          ],
+          "ir_feature_count": 0
+        },
+        {
+          "filename": "elbow-param.cas.h5",
+          "source_url": "https://github.com/ansys/example-data/blob/f145d8bc209eb5af2161c6b649a374f2ec703200/pyfluent/mixing_elbow/elbow_param.cas.h5",
+          "sha256": "d5795b18a7b8b3f17701609486cd1f288d9e2badb9d33b571f642b68afed8a96",
+          "input_bytes": 1228645,
+          "samples_ms": [
+            12.9209,
+            17.7527,
+            13.1731,
+            12.3571,
+            13.0651,
+            162.0723,
+            12.37,
+            12.6583,
+            14.5419,
+            14.8772,
+            12.4242
+          ],
+          "cli_ms": {
+            "median": 13.0651,
+            "min": 12.3571,
+            "max": 162.0723
+          },
+          "ir_bytes": 670,
+          "ir_sha256": "4aff5e2202bc3d60388ad74118f279b966dd8a8f5717d09b05113b866c6e59ca",
+          "compact_summary_json_bytes": 4755,
+          "cli_stdout_bytes": 10349,
+          "warning_count": 0,
+          "source_truncated": false,
+          "ir_dialects": [
+            "cae"
+          ],
+          "ir_feature_count": 0
+        }
+      ]
+    },
+    {
+      "case": "abaqus_inp",
+      "label": "Abaqus",
+      "format": "abaqus-inp",
+      "aggregate": {
+        "file_count": 5,
+        "input_bytes_total": 2748947,
+        "input_bytes": {
+          "median": 300192,
+          "min": 4404,
+          "max": 2080946
+        },
+        "cli_ms": {
+          "median": 12.3488,
+          "min": 11.9644,
+          "max": 13.972
+        },
+        "ir_bytes": {
+          "median": 819,
+          "min": 761,
+          "max": 930
+        },
+        "compact_summary_json_bytes": {
+          "median": 1836,
+          "min": 1705,
+          "max": 2083
+        }
       },
-      "python_baseline_status": "ok",
-      "simparse_vs_python_tool_call_speedup": 3.632,
-      "simparse_vs_python_in_process_speedup": 0.108,
-      "vendor_native_ms": null,
-      "vendor_native_status": "not_run",
-      "vendor_native_note": "requires locally licensed vendor software or APIs"
+      "files": [
+        {
+          "filename": "abaqus2dyna-example.inp",
+          "source_url": "https://github.com/tbhartman/abaqus2dyna/blob/c6d3f2dfc96898e6d14442f8a2dff1b298138b49/example.inp",
+          "sha256": "2f9a028463cd33b1f75bc35266244aaca3dd40bbf4f33df86304327b54fc59ab",
+          "input_bytes": 2080946,
+          "samples_ms": [
+            14.043,
+            13.526,
+            12.9601,
+            14.4066,
+            13.1561,
+            18.638,
+            13.0797,
+            14.1959,
+            13.9616,
+            14.0877,
+            13.972
+          ],
+          "cli_ms": {
+            "median": 13.972,
+            "min": 12.9601,
+            "max": 18.638
+          },
+          "ir_bytes": 761,
+          "ir_sha256": "858b82029db80051c658bd07f5527906b3a37673030da7bfb106f7d6333bda6c",
+          "compact_summary_json_bytes": 1705,
+          "cli_stdout_bytes": 2731,
+          "warning_count": 0,
+          "source_truncated": false,
+          "ir_dialects": [
+            "cae"
+          ],
+          "ir_feature_count": 1
+        },
+        {
+          "filename": "magicpbc-irregular-3dmesh.inp",
+          "source_url": "https://github.com/mo-hanxuan/MagicPBC/blob/7eac61be2fa6e96b1a26f04d4ebb0971df32b281/tests/irregular_3Dmesh.inp",
+          "sha256": "9d15751a13ce6426621bcdb93e0d2f19db13e6cc5c6c29c38efeda49c4a39124",
+          "input_bytes": 333486,
+          "samples_ms": [
+            12.076,
+            11.6495,
+            12.8159,
+            12.3488,
+            12.2162,
+            11.8572,
+            12.4977,
+            29.8877,
+            159.375,
+            170.752,
+            12.2478
+          ],
+          "cli_ms": {
+            "median": 12.3488,
+            "min": 11.6495,
+            "max": 170.752
+          },
+          "ir_bytes": 819,
+          "ir_sha256": "5e103dcc6067c525506d620e0c379d80100a0243db45f81e8e8164d8863a686a",
+          "compact_summary_json_bytes": 1809,
+          "cli_stdout_bytes": 2961,
+          "warning_count": 0,
+          "source_truncated": false,
+          "ir_dialects": [
+            "cae"
+          ],
+          "ir_feature_count": 2
+        },
+        {
+          "filename": "magicpbc-irregular-3dmesh-deformed.inp",
+          "source_url": "https://github.com/mo-hanxuan/MagicPBC/blob/7eac61be2fa6e96b1a26f04d4ebb0971df32b281/tests/irregular_3Dmesh_deformed.inp",
+          "sha256": "435732f7715474c04fa23084677722c1137d62a1173b743bfa5c8e9a8db42eff",
+          "input_bytes": 300192,
+          "samples_ms": [
+            12.7357,
+            11.8749,
+            13.2099,
+            12.0461,
+            13.565,
+            12.1217,
+            11.6407,
+            12.0744,
+            12.7708,
+            11.7107,
+            12.3741
+          ],
+          "cli_ms": {
+            "median": 12.1217,
+            "min": 11.6407,
+            "max": 13.565
+          },
+          "ir_bytes": 837,
+          "ir_sha256": "d7efabb0566587b1c1e53e6ae898431db162609636de5e7c5f08543d16442cac",
+          "compact_summary_json_bytes": 1836,
+          "cli_stdout_bytes": 2988,
+          "warning_count": 0,
+          "source_truncated": false,
+          "ir_dialects": [
+            "cae"
+          ],
+          "ir_feature_count": 2
+        },
+        {
+          "filename": "abaqus-us-test-indent-umat.inp",
+          "source_url": "https://github.com/jgomezc1/ABAQUS-US/blob/54181407aa7aa23055e33d354d0b2a3abc266365/INPUT_FILES/TEST_INDENT_UMAT.inp",
+          "sha256": "fc8302560fd16531dbe7a37b7332a02b4c80016e904fd0dc00b2fff2c189a7e3",
+          "input_bytes": 29919,
+          "samples_ms": [
+            13.0988,
+            12.3826,
+            11.9118,
+            11.3645,
+            11.4227,
+            11.4089,
+            16.2657,
+            35.9205,
+            13.3076,
+            14.1988,
+            11.3405
+          ],
+          "cli_ms": {
+            "median": 12.3826,
+            "min": 11.3405,
+            "max": 35.9205
+          },
+          "ir_bytes": 819,
+          "ir_sha256": "f71831094129cd39072b15c3d0d0d7f1a425a60db10db9423a9604aa69c2e17f",
+          "compact_summary_json_bytes": 1888,
+          "cli_stdout_bytes": 3093,
+          "warning_count": 0,
+          "source_truncated": false,
+          "ir_dialects": [
+            "cae"
+          ],
+          "ir_feature_count": 2
+        },
+        {
+          "filename": "abaqus-reader-cantilever-beam.inp",
+          "source_url": "https://github.com/ahojukka5/AbaqusReader.jl/blob/de322d5bae5835d54cb4c2c26628c54e2d98409b/test/test_comprehensive/cantilever_beam.inp",
+          "sha256": "9d0808fa54141b0e79770c306c5e6efda4e4f2d9ce61c56819942ca39a3cc8ab",
+          "input_bytes": 4404,
+          "samples_ms": [
+            13.2346,
+            12.4512,
+            11.4232,
+            11.6036,
+            11.6091,
+            11.9675,
+            11.8994,
+            11.7904,
+            13.5802,
+            12.3404,
+            11.9644
+          ],
+          "cli_ms": {
+            "median": 11.9644,
+            "min": 11.4232,
+            "max": 13.5802
+          },
+          "ir_bytes": 930,
+          "ir_sha256": "453527b087ff1344cdef2230c3f6bd9dffc8bff5a780c323936ff9bdd1720fdd",
+          "compact_summary_json_bytes": 2083,
+          "cli_stdout_bytes": 3482,
+          "warning_count": 0,
+          "source_truncated": false,
+          "ir_dialects": [
+            "cae"
+          ],
+          "ir_feature_count": 4
+        }
+      ]
+    },
+    {
+      "case": "step",
+      "label": "STEP",
+      "format": "step",
+      "aggregate": {
+        "file_count": 2,
+        "input_bytes_total": 5281117,
+        "input_bytes": {
+          "median": 2640558.5,
+          "min": 1618970,
+          "max": 3662147
+        },
+        "cli_ms": {
+          "median": 27.0338,
+          "min": 23.2354,
+          "max": 30.8322
+        },
+        "ir_bytes": {
+          "median": 966.5,
+          "min": 939,
+          "max": 994
+        },
+        "compact_summary_json_bytes": {
+          "median": 4324.0,
+          "min": 3620,
+          "max": 5028
+        }
+      },
+      "files": [
+        {
+          "filename": "tutorial-board.stp",
+          "source_url": "https://github.com/ansys/example-data/blob/f145d8bc209eb5af2161c6b649a374f2ec703200/pyaedt/sherlock/TutorialBoard.stp",
+          "sha256": "a1b37abed1bd57735c37ef597352935b3e03a0ffe25cf0885a71a9a6ba59c021",
+          "input_bytes": 1618970,
+          "samples_ms": [
+            23.8782,
+            22.9765,
+            23.2354,
+            24.0588,
+            23.7578,
+            22.4566,
+            22.3366,
+            22.7691,
+            23.675,
+            23.3351,
+            22.9787
+          ],
+          "cli_ms": {
+            "median": 23.2354,
+            "min": 22.3366,
+            "max": 24.0588
+          },
+          "ir_bytes": 939,
+          "ir_sha256": "be558a6318939016e75abe2bca516e36bde0592d7add2c3eccb40cb4821ee1ad",
+          "compact_summary_json_bytes": 3620,
+          "cli_stdout_bytes": 6252,
+          "warning_count": 0,
+          "source_truncated": false,
+          "ir_dialects": [
+            "cad"
+          ],
+          "ir_feature_count": 0
+        },
+        {
+          "filename": "race-car-nose.stp",
+          "source_url": "https://github.com/ansys/example-data/blob/f145d8bc209eb5af2161c6b649a374f2ec703200/pyacp/race_car_nose/race_car_nose.stp",
+          "sha256": "facec35b051778115273a3f9e1f6be83e978cc16231b1597801b9c168b002f9b",
+          "input_bytes": 3662147,
+          "samples_ms": [
+            31.731,
+            30.5023,
+            29.8483,
+            29.8269,
+            32.649,
+            31.581,
+            30.8322,
+            30.1108,
+            184.5226,
+            31.0978,
+            30.4085
+          ],
+          "cli_ms": {
+            "median": 30.8322,
+            "min": 29.8269,
+            "max": 184.5226
+          },
+          "ir_bytes": 994,
+          "ir_sha256": "a492e3f67b4a005a96224dc29b3f07631b527795a18228000ae71c69dc05dd0e",
+          "compact_summary_json_bytes": 5028,
+          "cli_stdout_bytes": 9004,
+          "warning_count": 0,
+          "source_truncated": false,
+          "ir_dialects": [
+            "cad"
+          ],
+          "ir_feature_count": 0
+        }
+      ]
     }
   ]
 }

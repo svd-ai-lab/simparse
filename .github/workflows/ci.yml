@@ -7,7 +7,7 @@ on:
 
 jobs:
   ir-contract:
-    name: AI Infra System IR contract
+    name: IR and benchmark contracts
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -16,6 +16,7 @@ jobs:
           python-version: '3.12'
       - run: python -m pip install -r tests/ir/requirements.txt
       - run: python -m unittest discover -s tests/ir -p 'test_*.py' -v
+      - run: python -m unittest discover -s benchmarks -p 'test_*.py' -v
   rust:
     name: Rust (${{ matrix.os }})
     runs-on: ${{ matrix.os }}

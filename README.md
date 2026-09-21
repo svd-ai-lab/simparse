@@ -3,6 +3,15 @@
 `simparse` is a lightweight Rust and Python scanner for simulation project and
 case metadata.
 
+![Single-file inspection latency and compact IR size across COMSOL, HFSS, Icepak, Maxwell, Mechanical, Fluent, Abaqus and STEP](artifacts/public-benchmark.svg)
+
+Measured on pinned public files, including process startup and JSON output.
+IR contains selected metadata and source references; geometry, meshes and results
+remain external. These are shallow inspection measurements, not full-model
+parsing or solver timings. [Methodology and reproduction](benchmarks/README.md)
+· [Raw measurements](artifacts/public-benchmark.json)
+· [Download PNG](artifacts/public-benchmark.png)
+
 ## Supported formats
 
 | Format | Files |
@@ -11,7 +20,7 @@ case metadata.
 | COMSOL | `.mph` |
 | Abaqus | `.inp`, `.inc` |
 | Fluent | `.cas.h5`, `.msh.h5` |
-| Ansys Electronics Desktop (HFSS / Icepak) | `.aedt`, `.aedtz` |
+| Ansys Electronics Desktop (HFSS / Icepak / Maxwell) | `.aedt`, `.aedtz` |
 | Ansys Mechanical | `.mechdb`, `.mechdat` |
 | Icepak Classic | `.tzr` |
 | Simcenter FloTHERM | `.pack`, `.xml`, `.floxml` |
@@ -62,25 +71,6 @@ maturin develop
 python -c "import simparse; print(simparse.inspect('/path/to/model.inp', summary=True))"
 python -c "import simparse; print(simparse.scan(['/path/to/history'], summary=True))"
 ```
-
-## Benchmark
-
-![Public benchmark bar chart](artifacts/public-benchmark.svg)
-
-```powershell
-python benchmarks/compare.py
-```
-
-This benchmark models one practical agent path: call one external tool to scan a
-group of public simulation artifacts. The bars include process startup and
-library import cost. The JSON artifact also records an in-process Python
-baseline for context; those numbers are useful for library-level comparison, but
-are not the primary agent tool-call scenario.
-
-The benchmark downloads public URLs listed in `benchmarks/public-artifacts.json`
-into `target/` and writes `artifacts/public-benchmark.json` plus
-`artifacts/public-benchmark.svg`. Vendor-native parser timings are not included
-because they require locally licensed software or APIs.
 
 ## License
 
