@@ -1,5 +1,6 @@
 mod dispatch;
 mod error;
+mod ir;
 pub mod parsers;
 mod schema;
 mod summary;

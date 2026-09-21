@@ -11,7 +11,9 @@ use crate::{
 
 pub fn detect_format(path: &Path) -> Option<SimFormat> {
     let name = path.file_name()?.to_string_lossy().to_ascii_lowercase();
-    if name.ends_with(".mph") {
+    if name.ends_with(".step") || name.ends_with(".stp") {
+        Some(SimFormat::Step)
+    } else if name.ends_with(".mph") {
         Some(SimFormat::ComsolMph)
     } else if name.ends_with(".inp") || name.ends_with(".inc") {
         Some(SimFormat::AbaqusInp)
@@ -42,6 +44,10 @@ pub fn inspect_path(path: impl AsRef<Path>, options: InspectOptions) -> Result<S
         .ok_or_else(|| SimparseError::UnsupportedFormat(path.display().to_string()))?;
 
     let summary = match format {
+        SimFormat::Step => FormatSummary::Step(crate::parsers::step::inspect_step(
+            path,
+            options.max_text_bytes,
+        )?),
         SimFormat::ComsolMph => FormatSummary::ComsolMph(comsol::inspect_comsol_mph(path)?),
         SimFormat::AbaqusInp => FormatSummary::AbaqusInp(abaqus::inspect_abaqus_inp(path)?),
         SimFormat::FluentHdf5 => FormatSummary::FluentHdf5(inspect_fluent_hdf5(path)?),
@@ -63,7 +69,7 @@ pub fn inspect_path(path: impl AsRef<Path>, options: InspectOptions) -> Result<S
         )?),
     };
 
-    Ok(SimparseResult {
+    let mut result = SimparseResult {
         path: options.include_paths.then(|| path.display().to_string()),
         file_name: path
             .file_name()
@@ -73,7 +79,10 @@ pub fn inspect_path(path: impl AsRef<Path>, options: InspectOptions) -> Result<S
         ok: true,
         warnings: Vec::new(),
         summary,
-    })
+        ir: None,
+    };
+    result.ir = Some(crate::ir::project(&result));
+    Ok(result)
 }
 
 pub fn scan_paths(paths: &[PathBuf], options: ScanOptions) -> Result<Vec<SimparseResult>> {

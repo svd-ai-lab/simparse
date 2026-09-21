@@ -7,6 +7,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
 #[serde(rename_all = "kebab-case")]
 pub enum SimFormat {
+    Step,
     ComsolMph,
     AbaqusInp,
     FluentHdf5,
@@ -22,6 +23,7 @@ impl FromStr for SimFormat {
 
     fn from_str(value: &str) -> std::result::Result<Self, Self::Err> {
         match value.to_ascii_lowercase().as_str() {
+            "step" | "stp" => Ok(Self::Step),
             "auto" => Err("auto is not a concrete format".into()),
             "comsol-mph" | "mph" => Ok(Self::ComsolMph),
             "abaqus-inp" | "inp" | "inc" => Ok(Self::AbaqusInp),
@@ -39,6 +41,7 @@ impl FromStr for SimFormat {
 impl std::fmt::Display for SimFormat {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let text = match self {
+            Self::Step => "step",
             Self::ComsolMph => "comsol-mph",
             Self::AbaqusInp => "abaqus-inp",
             Self::FluentHdf5 => "fluent-hdf5",
@@ -83,6 +86,8 @@ impl Default for ScanOptions {
             recursive: true,
             include_paths: false,
             includes: vec![
+                "*.step".into(),
+                "*.stp".into(),
                 "*.mph".into(),
                 "*.inp".into(),
                 "*.inc".into(),
@@ -111,11 +116,14 @@ pub struct SimparseResult {
     pub ok: bool,
     pub warnings: Vec<String>,
     pub summary: FormatSummary,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub ir: Option<serde_json::Value>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
 #[serde(tag = "kind", content = "data", rename_all = "kebab-case")]
 pub enum FormatSummary {
+    Step(crate::parsers::step::StepSummary),
     ComsolMph(ComsolMphSummary),
     AbaqusInp(AbaqusInpSummary),
     FluentHdf5(simparse_hdf5::FluentHdf5Summary),
