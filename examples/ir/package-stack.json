@@ -1,0 +1,50 @@
+{
+  "schema": "ai-infra-system/v0",
+  "dialects": {
+    "cad": {
+      "version": 0,
+      "source": { "uri": "artifacts/package.FCStd", "format": "freecad" },
+      "geometry": { "uri": "artifacts/package.step", "format": "step" },
+      "length_unit": "mm",
+      "entities": [
+        { "id": "compute-die", "kind": "body" },
+        { "id": "memory-stack", "kind": "assembly" },
+        { "id": "memory-die", "kind": "body", "parent_id": "memory-stack" },
+        { "id": "interposer", "kind": "body" }
+      ],
+      "inventory": { "uri": "artifacts/package.entities.jsonl", "format": "jsonl" }
+    },
+    "cae": {
+      "version": 0,
+      "source": { "uri": "artifacts/package.mechdb", "format": "ansys-mechanical" },
+      "cad": { "uri": "#/dialects/cad" },
+      "parameters": [
+        { "name": "thickness", "scope": "compute-die", "expression": "0.2", "unit": "mm" },
+        { "name": "thickness", "scope": "memory-die", "expression": "0.05", "unit": "mm" }
+      ],
+      "features": [
+        { "id": "silicon", "kind": "material", "selection": { "entity_ids": ["compute-die", "memory-die"] } },
+        { "id": "thermal", "kind": "analysis", "native_type": "SteadyStateThermal" },
+        { "id": "structural", "kind": "analysis", "native_type": "StaticStructural" },
+        {
+          "id": "die-interface",
+          "kind": "interface",
+          "selection": { "native_ref": "DieInterposerContact" },
+          "extensions": {
+            "ansys.mechanical": {
+              "version": "0",
+              "attributes": { "object_type": "ContactRegion" },
+              "artifact": { "uri": "artifacts/contact-definition.json", "format": "json" }
+            }
+          }
+        }
+      ],
+      "setup": { "uri": "artifacts/package-setup.json", "format": "json" },
+      "mesh": { "uri": "artifacts/package-mesh.h5", "format": "hdf5" },
+      "results": [
+        { "id": "temperature", "data": { "uri": "artifacts/package-results.h5", "format": "hdf5" }, "native_ref": "/thermal/T", "unit": "K" },
+        { "id": "warpage", "data": { "uri": "artifacts/package-results.h5", "format": "hdf5" }, "native_ref": "/structural/uz", "unit": "mm" }
+      ]
+    }
+  }
+}
