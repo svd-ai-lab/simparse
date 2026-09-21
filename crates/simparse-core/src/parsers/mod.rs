@@ -3,6 +3,7 @@ pub mod comsol;
 pub mod flotherm;
 pub mod hfss;
 pub mod icepak;
+pub mod step;
 
 use std::path::Path;
 

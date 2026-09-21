@@ -21,8 +21,23 @@ The organization borrows coexisting, namespaced dialects from
 [MLIR](https://mlir.llvm.org/docs/LangRef/#dialects). This is a JSON data contract
 with no MLIR runtime dependency. Extraction probes use Rust and the existing
 simparse readers. Python is used only for development-time schema validation.
-The CLI and Python `inspect`/`scan` APIs do not yet emit this draft. The existing
-`sim-cli` asset-scanning integration continues to consume those APIs.
+The CLI and Python `inspect`/`scan` JSON results include this draft in `ir`,
+alongside their format-specific summaries. Both full and compact views carry
+the same IR. The existing `sim-cli` `sim --json scan` integration passes this field
+through when its environment has a simparse build containing this capability.
+
+STEP sources produce a CAD dialect containing bounded declaration evidence.
+COMSOL, HFSS/AEDT and Mechanical sources produce selected CAE feature inventories;
+other supported simulation formats retain the observations available from their
+readers. These projections do not establish enabled states, parameter scopes,
+CAD-to-CAE selections or usable result arrays. AEDT's observed `is_solved` flag
+stays in its software extension and is not an effective-activation flag.
+
+The runtime IR contains at most 24 selected CAE features and reports omitted
+feature counts. Large names are omitted whole, with the native input retained
+as the setup reference. No files are written during inspection. STEP units and
+record counts stay in the `step` extension: unit-to-representation bindings,
+assembly occurrences and physical topology are not inferred from declarations.
 
 ## Small manifests, external payloads
 
@@ -38,6 +53,15 @@ A hash covers the referenced file's exact bytes. A native source can also serve
 as geometry or setup without copying its payload. Data URIs and inline payload
 fields are not allowed. Schemas bound inline lists and extension attributes;
 the reference validator also enforces a manifest byte limit.
+
+Runtime inspection hides locations by default. Its `urn:simparse:source:...`
+reference is a descriptive handle within the enclosing inspection result, not
+a unique source identity or a resolvable file URI; equal basenames can collide.
+Use `include_paths=True` in Python or `--include-paths` in the CLI to obtain
+encoded absolute file URIs. Unusually long URIs fall back to a hidden handle
+with a warning. Runtime inspection does not hash the entire source or pin its
+revision. Consumers needing revision identity must explicitly hash the referenced
+artifact before reusing bindings or comparing results.
 
 Omit unknown fields and empty optional lists. Missing information never means
 zero, false, dimensionless, absent from the source, or an empty physical
@@ -124,5 +148,6 @@ cargo run -p simparse-core --example ir_asset_probe -- assets.json /path/to/prob
 python scripts/validate_ir.py /path/to/probe-output/case-000/system.json --check-artifacts --require-resolved
 ```
 
-These probes test contract fit and reference integrity. They are not production
-exporters, solver validation, or new supported formats in the simparse CLI.
+These trial probes test contract fit and reference integrity. Their hand-built
+projections are separate from runtime inspection and do not establish solver
+validity or additional supported formats. FreeCAD remains a test-only probe.

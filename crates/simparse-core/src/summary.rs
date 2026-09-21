@@ -14,6 +14,10 @@ pub const SUMMARY_TEXT_BYTES: usize = 256;
 
 pub fn summarize_result(result: &SimparseResult) -> SimparseSummaryResult {
     let (summary, limitations) = match &result.summary {
+        FormatSummary::Step(value) => (
+            CompactFormatSummary::Step(value.clone()),
+            vec!["STEP declaration inventory only; units are not resolved to representation contexts. Counts describe source records, not assembly occurrences, valid topology or meshability.".into()],
+        ),
         FormatSummary::ComsolMph(value) => (
             CompactFormatSummary::ComsolMph(CompactComsolMphSummary {
                 schema: option_text(value.schema.as_deref()),
@@ -103,6 +107,7 @@ pub fn summarize_result(result: &SimparseResult) -> SimparseSummaryResult {
         warnings: bounded_texts(&result.warnings),
         limitations,
         summary,
+        ir: result.ir.clone(),
     }
 }
 
@@ -438,11 +443,14 @@ pub struct SimparseSummaryResult {
     pub warnings: BoundedList<String>,
     pub limitations: Vec<String>,
     pub summary: CompactFormatSummary,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub ir: Option<serde_json::Value>,
 }
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize, schemars::JsonSchema)]
 #[serde(tag = "kind", content = "data", rename_all = "kebab-case")]
 pub enum CompactFormatSummary {
+    Step(crate::parsers::step::StepSummary),
     ComsolMph(CompactComsolMphSummary),
     AbaqusInp(CompactAbaqusInpSummary),
     FluentHdf5(CompactFluentHdf5Summary),
@@ -748,6 +756,7 @@ mod tests {
             .map(|index| format!("材料-{index}").repeat(80))
             .collect();
         let result = SimparseResult {
+            ir: None,
             path: None,
             file_name: "large.inp".to_string(),
             format: SimFormat::AbaqusInp,
