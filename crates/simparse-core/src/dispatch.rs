@@ -4,7 +4,7 @@ use walkdir::WalkDir;
 
 use crate::parsers::{
     abaqus, comsol, flotherm, hfss, icepak, inspect_fluent_hdf5, inspect_mechanical_mechdb,
-    simulink,
+    matfile, simulink,
 };
 use crate::{
     FormatSummary, InspectOptions, Result, ScanOptions, SimFormat, SimparseError, SimparseResult,
@@ -36,6 +36,8 @@ pub fn detect_format(path: &Path) -> Option<SimFormat> {
         Some(SimFormat::SimulinkSlx)
     } else if name.ends_with(".mdl") && simulink::looks_like_mdl(path) {
         Some(SimFormat::SimulinkMdl)
+    } else if name.ends_with(".mat") && matfile::looks_like_mat(path) {
+        Some(SimFormat::MatlabMat)
     } else {
         None
     }
@@ -72,6 +74,7 @@ pub fn inspect_path(path: impl AsRef<Path>, options: InspectOptions) -> Result<S
             path,
             options.max_text_bytes,
         )?),
+        SimFormat::MatlabMat => FormatSummary::MatFile(Box::new(matfile::inspect_mat_file(path)?)),
         SimFormat::SimulinkSlx | SimFormat::SimulinkMdl => FormatSummary::Simulink(Box::new(
             crate::parsers::simulink::inspect_simulink_model(path)?,
         )),

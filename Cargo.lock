@@ -840,6 +840,7 @@ name = "simparse-core"
 version = "0.3.4"
 dependencies = [
  "flate2",
+ "hdf5-pure",
  "quick-xml",
  "schemars",
  "serde",

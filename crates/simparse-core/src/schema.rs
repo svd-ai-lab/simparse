@@ -18,6 +18,7 @@ pub enum SimFormat {
     FlothermPack,
     SimulinkSlx,
     SimulinkMdl,
+    MatlabMat,
 }
 
 impl FromStr for SimFormat {
@@ -37,6 +38,7 @@ impl FromStr for SimFormat {
             "flotherm-pack" | "pack" => Ok(Self::FlothermPack),
             "simulink-slx" | "slx" => Ok(Self::SimulinkSlx),
             "simulink-mdl" | "mdl" => Ok(Self::SimulinkMdl),
+            "matlab-mat" | "mat" => Ok(Self::MatlabMat),
             other => Err(format!("unknown format: {other}")),
         }
     }
@@ -56,6 +58,7 @@ impl std::fmt::Display for SimFormat {
             Self::FlothermPack => "flotherm-pack",
             Self::SimulinkSlx => "simulink-slx",
             Self::SimulinkMdl => "simulink-mdl",
+            Self::MatlabMat => "matlab-mat",
         };
         f.write_str(text)
     }
@@ -109,6 +112,7 @@ impl Default for ScanOptions {
                 "*.pack".into(),
                 "*.slx".into(),
                 "*.mdl".into(),
+                "*.mat".into(),
             ],
             inspect: InspectOptions::default(),
         }
@@ -141,6 +145,7 @@ pub enum FormatSummary {
     FlothermFloxml(FlothermFloxmlSummary),
     FlothermPack(FlothermPackSummary),
     Simulink(Box<crate::parsers::simulink::SimulinkModelSummary>),
+    MatFile(Box<crate::parsers::matfile::MatFileSummary>),
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]

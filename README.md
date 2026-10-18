@@ -16,6 +16,7 @@ case metadata.
 | Icepak Classic | `.tzr` |
 | Simcenter FloTHERM | `.pack`, `.xml`, `.floxml` |
 | Simulink | `.slx`, `.mdl` |
+| MATLAB data | `.mat` |
 
 ## Design
 
