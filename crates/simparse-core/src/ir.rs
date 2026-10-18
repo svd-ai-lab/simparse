@@ -180,6 +180,12 @@ pub(crate) fn project(result: &SimparseResult) -> Value {
             attrs.insert("archive_entry_count".into(), json!(data.entry_count));
             attrs.insert("source_truncated".into(), json!(data.truncated));
         }
+        FormatSummary::MatFile(data) => {
+            namespace = "mathworks.mat";
+            attrs.insert("variable_count".into(), json!(data.variable_count));
+            attrs.insert("format_version".into(), json!(data.version));
+            attrs.insert("source_truncated".into(), json!(data.truncated));
+        }
         FormatSummary::Simulink(data) => {
             namespace = "mathworks.simulink";
             features.names("physics", "physics", &data.physical_modeling_products);

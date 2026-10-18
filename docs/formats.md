@@ -67,3 +67,8 @@ sizes, entry counts, whether `PDProject/group` is present, whether a
 `simparse` reports model kind, release, block and library inventory, subsystems,
 Stateflow usage, root ports and the active solver settings. Parameters are not
 evaluated.
+
+## MATLAB `.mat`
+
+`simparse` lists variables in Level 4, v5–v7 and v7.3 MAT files: name, class,
+dimensions and flags, plus header facts. Data are not loaded.

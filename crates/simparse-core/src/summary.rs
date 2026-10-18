@@ -4,7 +4,8 @@ use crate::{
     AbaqusInpSummary, FlothermBoundary, FlothermEntity, FlothermFloxmlSummary, FlothermGridAxis,
     FlothermPackEntry, FlothermPackSummary, FlothermSource, FormatSummary, HfssAedtSummary,
     HfssDesign, IcepakAedtSummary, IcepakBoundary, IcepakDesign, IcepakTzrEntry, IcepakTzrSummary,
-    NamedCount, NamedValue, SimparseResult, SimulinkModelSummary, SimulinkSolver, StateflowCounts,
+    MatFileSummary, NamedCount, NamedValue, SimparseResult, SimulinkModelSummary, SimulinkSolver,
+    StateflowCounts,
 };
 use simparse_hdf5::{FluentHdf5Summary, Hdf5AttributeInfo, Hdf5DatasetInfo, Hdf5GroupInfo};
 use simparse_hdf5::{MechanicalMechdbSummary, MechanicalObjectTypeCount, MechanicalStreamInfo};
@@ -98,6 +99,10 @@ pub fn summarize_result(result: &SimparseResult) -> SimparseSummaryResult {
         FormatSummary::Simulink(value) => (
             CompactFormatSummary::Simulink(Box::new(compact_simulink(value))),
             vec!["Model structure and stored configuration only; parameters are not evaluated.".into()],
+        ),
+        FormatSummary::MatFile(value) => (
+            CompactFormatSummary::MatFile(Box::new(compact_mat(value))),
+            vec!["Variable inventory only; data are not loaded.".into()],
         ),
     };
 
@@ -429,6 +434,28 @@ fn compact_simulink(value: &SimulinkModelSummary) -> CompactSimulinkModelSummary
     }
 }
 
+fn compact_mat(value: &MatFileSummary) -> CompactMatFileSummary {
+    CompactMatFileSummary {
+        version: value.version.clone(),
+        platform: option_text(value.platform.as_deref()),
+        created: option_text(value.created.as_deref()),
+        endian: value.endian.clone(),
+        compressed: value.compressed,
+        subsystem_data: value.subsystem_data,
+        variables: bounded_map(&value.variables, |v| CompactMatVariable {
+            name: bounded_text(&v.name),
+            class: bounded_text(&v.class),
+            dims: v.dims.iter().take(SUMMARY_SAMPLE_LIMIT).copied().collect(),
+            complex: v.complex,
+            sparse: v.sparse,
+            global: v.global,
+            fields: bounded_texts(&v.fields),
+            stored_bytes: v.stored_bytes,
+        }),
+        truncated: value.truncated,
+    }
+}
+
 fn bounded_texts(values: &[String]) -> BoundedList<String> {
     bounded_map(values, |value| bounded_text(value))
 }
@@ -505,6 +532,7 @@ pub enum CompactFormatSummary {
     FlothermFloxml(CompactFlothermFloxmlSummary),
     FlothermPack(CompactFlothermPackSummary),
     Simulink(Box<CompactSimulinkModelSummary>),
+    MatFile(Box<CompactMatFileSummary>),
 }
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize, schemars::JsonSchema)]
@@ -681,6 +709,30 @@ pub struct CompactFlothermFloxmlSummary {
     pub sources: BoundedList<CompactFlothermSource>,
     pub solution_domain: Option<CompactFlothermSolutionDomain>,
     pub source_truncated: bool,
+}
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, schemars::JsonSchema)]
+pub struct CompactMatFileSummary {
+    pub version: String,
+    pub platform: Option<String>,
+    pub created: Option<String>,
+    pub endian: Option<String>,
+    pub compressed: Option<bool>,
+    pub subsystem_data: bool,
+    pub variables: BoundedList<CompactMatVariable>,
+    pub truncated: bool,
+}
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, schemars::JsonSchema)]
+pub struct CompactMatVariable {
+    pub name: String,
+    pub class: String,
+    pub dims: Vec<u64>,
+    pub complex: bool,
+    pub sparse: bool,
+    pub global: bool,
+    pub fields: BoundedList<String>,
+    pub stored_bytes: u64,
 }
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize, schemars::JsonSchema)]

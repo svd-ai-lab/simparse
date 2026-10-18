@@ -24,6 +24,12 @@ def main():
         with zipfile.ZipFile(root / "plant.slx", "w") as archive:
             archive.writestr("simulink/blockdiagram.xml", "<ModelInformation><Model><P Name='PhysicalModelingProducts'>Simscape</P><System Ref='system_root'/></Model></ModelInformation>")
             archive.writestr("simulink/systems/system_root.xml", "<System><Block BlockType='Gain' Name='k' SID='1'/><Line/></System>")
+        head = b"MATLAB 5.0 MAT-file, Platform: TEST, Created on: now".ljust(116) + bytes(8) + b"\x00\x01IM"
+        flags = (6).to_bytes(4, "little") + (8).to_bytes(4, "little") + (6).to_bytes(4, "little") + bytes(4)
+        dims = (5).to_bytes(4, "little") + (8).to_bytes(4, "little") + (1).to_bytes(4, "little") * 2
+        name = (1).to_bytes(4, "little") + (1).to_bytes(4, "little") + b"x" + bytes(7)
+        body = flags + dims + name
+        (root / "data.mat").write_bytes(head + (14).to_bytes(4, "little") + len(body).to_bytes(4, "little") + body)
         (root / "plant.mdl").write_text("Model {\n  Solver \"ode4\"\n  System {\n    Block {\n      BlockType Gain\n    }\n  }\n}\n")
         checks = 0
         for source in root.iterdir():
