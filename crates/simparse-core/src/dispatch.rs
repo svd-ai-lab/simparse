@@ -4,6 +4,7 @@ use walkdir::WalkDir;
 
 use crate::parsers::{
     abaqus, comsol, flotherm, hfss, icepak, inspect_fluent_hdf5, inspect_mechanical_mechdb,
+    simulink,
 };
 use crate::{
     FormatSummary, InspectOptions, Result, ScanOptions, SimFormat, SimparseError, SimparseResult,
@@ -31,6 +32,10 @@ pub fn detect_format(path: &Path) -> Option<SimFormat> {
         Some(SimFormat::FlothermFloxml)
     } else if name.ends_with(".pack") {
         Some(SimFormat::FlothermPack)
+    } else if name.ends_with(".slx") && simulink::looks_like_slx(path) {
+        Some(SimFormat::SimulinkSlx)
+    } else if name.ends_with(".mdl") && simulink::looks_like_mdl(path) {
+        Some(SimFormat::SimulinkMdl)
     } else {
         None
     }
@@ -67,6 +72,9 @@ pub fn inspect_path(path: impl AsRef<Path>, options: InspectOptions) -> Result<S
             path,
             options.max_text_bytes,
         )?),
+        SimFormat::SimulinkSlx | SimFormat::SimulinkMdl => FormatSummary::Simulink(Box::new(
+            crate::parsers::simulink::inspect_simulink_model(path)?,
+        )),
     };
 
     let mut result = SimparseResult {
@@ -126,6 +134,9 @@ fn should_include(path: &Path, patterns: &[String]) -> bool {
         Some(name) => name.to_string_lossy().to_ascii_lowercase(),
         None => return false,
     };
+    if name.starts_with("._") {
+        return false;
+    }
     patterns.iter().any(|pattern| {
         let pattern = pattern.trim().to_ascii_lowercase();
         if pattern == "*" {

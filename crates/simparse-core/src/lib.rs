@@ -15,5 +15,8 @@ pub use parsers::hfss::inspect_hfss_aedt;
 pub use parsers::icepak::inspect_icepak_tzr;
 pub use parsers::inspect_fluent_hdf5;
 pub use parsers::inspect_mechanical_mechdb;
+pub use parsers::simulink::{
+    SimulinkModelSummary, SimulinkSolver, StateflowCounts, inspect_simulink_model,
+};
 pub use schema::*;
 pub use summary::*;

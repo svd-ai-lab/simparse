@@ -61,3 +61,9 @@ decoding proprietary PDML project payloads are outside this parser's scope.
 payloads. It reports the project directory/name, compressed and uncompressed
 sizes, entry counts, whether `PDProject/group` is present, whether a
 `DataSets/BaseSolution` tree is present, and a bounded entry inventory.
+
+## Simulink `.slx` / `.mdl`
+
+`simparse` reports model kind, release, block and library inventory, subsystems,
+Stateflow usage, root ports and the active solver settings. Parameters are not
+evaluated.
