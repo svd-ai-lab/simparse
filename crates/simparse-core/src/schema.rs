@@ -16,6 +16,8 @@ pub enum SimFormat {
     IcepakTzr,
     FlothermFloxml,
     FlothermPack,
+    SimulinkSlx,
+    SimulinkMdl,
 }
 
 impl FromStr for SimFormat {
@@ -33,6 +35,8 @@ impl FromStr for SimFormat {
             "icepak-tzr" | "icepak" | "tzr" => Ok(Self::IcepakTzr),
             "flotherm-floxml" | "flotherm" | "floxml" => Ok(Self::FlothermFloxml),
             "flotherm-pack" | "pack" => Ok(Self::FlothermPack),
+            "simulink-slx" | "slx" => Ok(Self::SimulinkSlx),
+            "simulink-mdl" | "mdl" => Ok(Self::SimulinkMdl),
             other => Err(format!("unknown format: {other}")),
         }
     }
@@ -50,6 +54,8 @@ impl std::fmt::Display for SimFormat {
             Self::IcepakTzr => "icepak-tzr",
             Self::FlothermFloxml => "flotherm-floxml",
             Self::FlothermPack => "flotherm-pack",
+            Self::SimulinkSlx => "simulink-slx",
+            Self::SimulinkMdl => "simulink-mdl",
         };
         f.write_str(text)
     }
@@ -101,6 +107,8 @@ impl Default for ScanOptions {
                 "*.floxml".into(),
                 "*.xml".into(),
                 "*.pack".into(),
+                "*.slx".into(),
+                "*.mdl".into(),
             ],
             inspect: InspectOptions::default(),
         }
@@ -132,6 +140,7 @@ pub enum FormatSummary {
     IcepakTzr(IcepakTzrSummary),
     FlothermFloxml(FlothermFloxmlSummary),
     FlothermPack(FlothermPackSummary),
+    Simulink(Box<crate::parsers::simulink::SimulinkModelSummary>),
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]

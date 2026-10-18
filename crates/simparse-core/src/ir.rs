@@ -180,6 +180,28 @@ pub(crate) fn project(result: &SimparseResult) -> Value {
             attrs.insert("archive_entry_count".into(), json!(data.entry_count));
             attrs.insert("source_truncated".into(), json!(data.truncated));
         }
+        FormatSummary::Simulink(data) => {
+            namespace = "mathworks.simulink";
+            features.names("physics", "physics", &data.physical_modeling_products);
+            for (key, value) in [
+                ("block_count", data.block_count),
+                ("subsystem_count", data.subsystem_count),
+                ("line_count", data.line_count),
+                ("stateflow_chart_count", data.stateflow.charts),
+                ("model_reference_count", data.model_references.len()),
+            ] {
+                attrs.insert(key.into(), json!(value));
+            }
+            for (key, value) in [
+                ("software_version", data.saved_release.as_deref()),
+                ("solver", data.solver.solver.as_deref()),
+                ("stop_time", data.solver.stop_time.as_deref()),
+            ] {
+                if let Some(value) = value.and_then(text) {
+                    attrs.insert(key.into(), json!(value));
+                }
+            }
+        }
         FormatSummary::IcepakTzr(data) => {
             namespace = "ansys.icepak";
             attrs.insert("archive_entry_count".into(), json!(data.entry_count));

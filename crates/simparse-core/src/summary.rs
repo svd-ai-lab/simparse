@@ -4,7 +4,7 @@ use crate::{
     AbaqusInpSummary, FlothermBoundary, FlothermEntity, FlothermFloxmlSummary, FlothermGridAxis,
     FlothermPackEntry, FlothermPackSummary, FlothermSource, FormatSummary, HfssAedtSummary,
     HfssDesign, IcepakAedtSummary, IcepakBoundary, IcepakDesign, IcepakTzrEntry, IcepakTzrSummary,
-    NamedCount, NamedValue, SimparseResult,
+    NamedCount, NamedValue, SimparseResult, SimulinkModelSummary, SimulinkSolver, StateflowCounts,
 };
 use simparse_hdf5::{FluentHdf5Summary, Hdf5AttributeInfo, Hdf5DatasetInfo, Hdf5GroupInfo};
 use simparse_hdf5::{MechanicalMechdbSummary, MechanicalObjectTypeCount, MechanicalStreamInfo};
@@ -94,6 +94,10 @@ pub fn summarize_result(result: &SimparseResult) -> SimparseSummaryResult {
                 "Archive inventory only; proprietary PDML payloads, mesh and result fields, and solver semantics are not decoded."
                     .to_string(),
             ],
+        ),
+        FormatSummary::Simulink(value) => (
+            CompactFormatSummary::Simulink(Box::new(compact_simulink(value))),
+            vec!["Model structure and stored configuration only; parameters are not evaluated.".into()],
         ),
     };
 
@@ -384,6 +388,47 @@ fn compact_named_value(value: &NamedValue) -> CompactNamedValue {
     }
 }
 
+fn compact_simulink(value: &SimulinkModelSummary) -> CompactSimulinkModelSummary {
+    let solver = &value.solver;
+    CompactSimulinkModelSummary {
+        container: value.container.clone(),
+        kind: value.kind.clone(),
+        saved_release: option_text(value.saved_release.as_deref()),
+        saved_version: option_text(value.saved_version.as_deref()),
+        block_count: value.block_count,
+        block_types: bounded_map(&value.block_types, compact_named_count),
+        library_links: bounded_map(&value.library_links, compact_named_count),
+        libraries: bounded_map(&value.libraries, compact_named_count),
+        subsystem_count: value.subsystem_count,
+        max_depth: value.max_depth,
+        line_count: value.line_count,
+        model_references: bounded_texts(&value.model_references),
+        stateflow_blocks: bounded_map(&value.stateflow_blocks, compact_named_count),
+        stateflow: value.stateflow.clone(),
+        physical_modeling_products: bounded_texts(&value.physical_modeling_products),
+        inports: bounded_texts(&value.inports),
+        outports: bounded_texts(&value.outports),
+        solver: SimulinkSolver {
+            solver_type: option_text(solver.solver_type.as_deref()),
+            solver: option_text(solver.solver.as_deref()),
+            start_time: option_text(solver.start_time.as_deref()),
+            stop_time: option_text(solver.stop_time.as_deref()),
+            fixed_step: option_text(solver.fixed_step.as_deref()),
+            max_step: option_text(solver.max_step.as_deref()),
+            rel_tol: option_text(solver.rel_tol.as_deref()),
+            abs_tol: option_text(solver.abs_tol.as_deref()),
+            reference: option_text(solver.reference.as_deref()),
+            reference_location: option_text(solver.reference_location.as_deref()),
+        },
+        model_workspace: value.model_workspace,
+        size_breakdown: bounded_map(&value.size_breakdown, |item| CompactSizeBucket {
+            bucket: bounded_text(&item.bucket),
+            bytes: item.bytes,
+        }),
+        entries: bounded_texts(&value.entries),
+    }
+}
+
 fn bounded_texts(values: &[String]) -> BoundedList<String> {
     bounded_map(values, |value| bounded_text(value))
 }
@@ -459,6 +504,7 @@ pub enum CompactFormatSummary {
     IcepakTzr(CompactIcepakTzrSummary),
     FlothermFloxml(CompactFlothermFloxmlSummary),
     FlothermPack(CompactFlothermPackSummary),
+    Simulink(Box<CompactSimulinkModelSummary>),
 }
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize, schemars::JsonSchema)]
@@ -635,6 +681,31 @@ pub struct CompactFlothermFloxmlSummary {
     pub sources: BoundedList<CompactFlothermSource>,
     pub solution_domain: Option<CompactFlothermSolutionDomain>,
     pub source_truncated: bool,
+}
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, schemars::JsonSchema)]
+pub struct CompactSimulinkModelSummary {
+    pub container: String,
+    pub kind: Option<String>,
+    pub saved_release: Option<String>,
+    pub saved_version: Option<String>,
+    pub block_count: usize,
+    pub block_types: BoundedList<CompactNamedCount>,
+    pub library_links: BoundedList<CompactNamedCount>,
+    pub libraries: BoundedList<CompactNamedCount>,
+    pub subsystem_count: usize,
+    pub max_depth: usize,
+    pub line_count: usize,
+    pub model_references: BoundedList<String>,
+    pub stateflow_blocks: BoundedList<CompactNamedCount>,
+    pub stateflow: StateflowCounts,
+    pub physical_modeling_products: BoundedList<String>,
+    pub inports: BoundedList<String>,
+    pub outports: BoundedList<String>,
+    pub solver: SimulinkSolver,
+    pub model_workspace: bool,
+    pub size_breakdown: BoundedList<CompactSizeBucket>,
+    pub entries: BoundedList<String>,
 }
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize, schemars::JsonSchema)]

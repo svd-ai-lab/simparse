@@ -15,6 +15,7 @@ case metadata.
 | Ansys Mechanical | `.mechdb`, `.mechdat` |
 | Icepak Classic | `.tzr` |
 | Simcenter FloTHERM | `.pack`, `.xml`, `.floxml` |
+| Simulink | `.slx`, `.mdl` |
 
 ## Design
 

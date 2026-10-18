@@ -21,6 +21,10 @@ def main():
         (root / "antenna.aedt").write_text("$begin 'AnsoftProject'\n$begin 'HFSSModel'\nName='Antenna'\nSolutionType='DrivenModal'\n$end 'HFSSModel'\n$end 'AnsoftProject'\n$begin 'ProjectPreview'\n$begin 'DesignInfo'\nDesignName='Antenna'\nFactory='HFSS'\nIsSolved=false\n$end 'DesignInfo'\n$end 'ProjectPreview'\n")
         with zipfile.ZipFile(root / "heat.mph", "w") as archive:
             archive.writestr("dmodel.xml", "<Model><Physics tag='ht'/><Study tag='std1'/></Model>")
+        with zipfile.ZipFile(root / "plant.slx", "w") as archive:
+            archive.writestr("simulink/blockdiagram.xml", "<ModelInformation><Model><P Name='PhysicalModelingProducts'>Simscape</P><System Ref='system_root'/></Model></ModelInformation>")
+            archive.writestr("simulink/systems/system_root.xml", "<System><Block BlockType='Gain' Name='k' SID='1'/><Line/></System>")
+        (root / "plant.mdl").write_text("Model {\n  Solver \"ode4\"\n  System {\n    Block {\n      BlockType Gain\n    }\n  }\n}\n")
         checks = 0
         for source in root.iterdir():
             for include_paths in (False, True):
